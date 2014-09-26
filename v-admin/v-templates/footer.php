@@ -2,6 +2,8 @@
     <script src="js/jquery-1.10.2.js"></script>
     <script src="js/bootstrap.min.js"></script>
     <script src="js/asynch-function.js"></script>
+    <script src="js/jquery.plugin.js"></script>
+    <script src="js/jquery.datepick.js"></script>
     <script src="js/plugins/metisMenu/jquery.metisMenu.js"></script>
 
     <!-- Page-Level Plugin Scripts - Dashboard -->
@@ -33,6 +35,14 @@
 		unset($_SESSION['warning']);
 	}
 ?>
+<script type="text/javascript">
+	$('#exp_date').datepick({
+		dateFormat: 'yyyy-mm-dd',
+		minDate: new Date(), 
+    	maxDate: '+6m',
+		showTrigger: '#calImg'
+	});
+</script>
     
 </body>
 

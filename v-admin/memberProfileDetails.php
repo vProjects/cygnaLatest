@@ -44,6 +44,11 @@
 									//getting user education info
 									$manageContent->getUserEducation($uid);
 								}
+								else if($GLOBALS['_GET']['action'] == 'money_details')
+								{
+									//getting user education info
+									$manageContent->getUserMoneyDetails($uid);
+								}
 								else if($GLOBALS['_GET']['action'] == 'activation_details')
 								{
 									//getting user activation details info
@@ -80,6 +85,7 @@
 									<a href="memberProfileDetails.php?uid='.$uid.'&action=portfolio" class="list-group-item"><i class="fa fa-info fa-fw"></i> User Portfolio</a>
 									<a href="memberProfileDetails.php?uid='.$uid.'&action=employment" class="list-group-item"><i class="fa fa-info fa-fw"></i> User Employment</a>
 									<a href="memberProfileDetails.php?uid='.$uid.'&action=education" class="list-group-item"><i class="fa fa-info fa-fw"></i> User Education</a>
+									<a href="memberProfileDetails.php?uid='.$uid.'&action=money_details" class="list-group-item"><i class="fa fa-info fa-fw"></i> User Money Details</a>
 									<a href="memberProfileDetails.php?uid='.$uid.'&action=activation_details" class="list-group-item"><i class="fa fa-info fa-fw"></i> User Activation Status</a>';
 								?>
                             </div>

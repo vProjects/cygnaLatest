@@ -2,7 +2,15 @@
 
 <div id="profile_footer_outline">
 	<div class="container">
-    	<div class="row profile_footer_row">
+    	<div class="row copyright_row">
+        	<div class="col-md-12 copyright_text_position">
+            	<p class="copyright_para">Copyright <?php echo date('Y'); ?> @ cygnatech.com | 
+            		<a href="terms-condition.php">Terms Of Use</a> | 
+            		<a href="privacy-policy.php">Privacy Policy</a> | 
+            		<a href="mypage.php?id=p54212a4d4a47d">Code of Conduct</a> | 
+            		<a href="mypage.php?id=p54212b2917dc6">Copyright Infringement Policy</a>
+            	</p>
+            </div>
         </div>
     </div>
 </div>
@@ -43,85 +51,6 @@
 		maxDate: '+3m',
 		showTrigger: '#calImg'
 	});
-</script>
-<script type="text/javascript">
-	function sendmsg(txt_id,bid_id)
-	{
-		var msg = document.getElementById(txt_id).value;
-		if( msg != "" )
-		{
-			$.ajax({
-			  url: "v-includes/class.fetchData.php",
-			  type: "POST",
-			  data: "msg="+msg+"&bid="+bid_id+"&refData=postMsg"
-			}).success(function(data) {
-			  alert(data);
-			  document.getElementById(txt_id).value = "";
-			});
-		}
-		else
-		{
-			alert('Please type a message.');
-		}
-			
-	}
-	
-// 	
-	// function getMessage()
-	// {
-		// var bid = <?php //echo "'".$_GET['bid']."'"; ?>;
-// 		
-		// if( bid != "" )
-		// {
-			// $.ajax({
-			  // url: "v-includes/class.fetchData.php",
-			  // type: "POST",
-			  // data: "bid="+bid+"&refData=getMsg"
-			// }).success(function(data) {
-			  // alert(data);
-			// });
-		// }
-		// else
-		// {
-			// alert('Error in fetching previous message.');
-		// }
-	// }
-	
-	function acceptit(bid)
-	{
-		if( bid != "" )
-		{
-			$.ajax({
-			  url: "v-includes/class.fetchData.php",
-			  type: "POST",
-			  data: "bid="+bid+"&refData=acceptJob"
-			}).success(function(data) {
-				if( data != "" )
-				{
-			  		alert(data);
-			  		window.location = "";		
-				}
-			});
-		}
-	}
-	
-	function declineit(bid)
-	{
-		if( bid != "" )
-		{
-			$.ajax({
-			  url: "v-includes/class.fetchData.php",
-			  type: "POST",
-			  data: "bid="+bid+"&refData=declineJob"
-			}).success(function(data) {
-			  	if( data != "" )
-				{
-			  		alert(data);
-			  		window.location = "";			
-				}
-			});
-		}
-	}
 </script>
 </body>
 </html>

@@ -56,5 +56,25 @@ $(document).ready(function(e) {
 		//redirect to this page
 		window.location.href = 'user-list.php?search_value='+search_value+'&search_column='+search_column;
     });
+    
+    /*
+		method for showing ad type input
+		Auth: Debojyoti
+	*/
+    
+    $("#adType").change(function(){
+		var a = $("#adType").val();
+		if(a=="HTML")
+		{
+			$("#HTML").css("display","block");
+			$("#Image").css("display","none");
+		}
+		else if(a=="Image")
+		{
+			$("#Image").css("display","block");
+			$("#HTML").css("display","none");
+		}
+	
+	});
 	
 });

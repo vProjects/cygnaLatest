@@ -3,7 +3,7 @@
 	$pageTitle = 'Get Project';
 	if(!isset($GLOBALS['_COOKIE']['uid']) && !isset($_SESSION['user_id']))
 	{
-		header("Location: log_in.php");
+		header("Location: log-in.php");
 	}
 	include ("v-templates/header.php");
 ?>

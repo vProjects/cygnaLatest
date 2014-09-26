@@ -20,7 +20,7 @@
             <!-- /.row -->
             
             <div class="row">
-            	<div class="col-lg-8">
+            	<div class="col-lg-12">
                 	
                     <div class="panel panel-default">
                         <div class="panel-heading"><i class="fa fa-search fa-fw"></i> Member Search</div>
@@ -56,20 +56,7 @@
                     <!-- /.panel -->
                     
                 </div>
-                <!-- /.col-lg-8 -->
-                <div class="col-lg-4">
-                	<div class="panel panel-default">
-                        <div class="panel-heading"><i class="fa fa-tasks fa-fw"></i> Options</div>
-                        <div class="panel-body">
-                        	<div class="list-group list_item">
-                            	<div class="list-group-item"><i class="fa fa-money fa-fw"></i> New 20 User</div>
-                                <div class="list-group-item"><i class="fa fa-money fa-fw"></i> Top 20 User</div>
-                                <div class="list-group-item"><i class="fa fa-money fa-fw"></i> Deactivated User</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- /.col-lg-4 -->
+                <!-- /.col-lg-12 -->
             </div>
             <!-- /.row -->
             

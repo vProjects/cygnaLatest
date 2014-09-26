@@ -3,6 +3,9 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="keywords" content="keywords, keyword, keyword phrase, etc.">
+<meta name="description" content="This is an example of a meta description. This will often show up in search results.">
+<link rel="icon" type="image/ico" href="favicon.ico">
 
 <link rel="stylesheet" type="text/css" href="dist/css/bootstrap.css" />
 <link rel="stylesheet" type="text/css" href="dist/css/bootstrap-theme.css" />
@@ -18,54 +21,24 @@
 <script src="js/jquery.plugin.js"></script>
 <script src="js/jquery.datepick.js"></script>
 <script src="js/jquery.Jcrop.min.js"></script>
+<script src="js/upload.js"></script>
 <title>CYGNATECH | <?php echo $pageTitle; ?></title>
+<!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+<!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+  <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+<![endif]-->
 </head>
 
 <body>
-<!-- facebook like box script -->
-<div id="fb-root"></div>
-<script>(function(d, s, id) {
-  var js, fjs = d.getElementsByTagName(s)[0];
-  if (d.getElementById(id)) return;
-  js = d.createElement(s); js.id = id;
-  js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.0";
-  fjs.parentNode.insertBefore(js, fjs);
-}(document, 'script', 'facebook-jssdk'));
-
-	//function to check new message
-	function messageNotification()
-	{
-		var notification_div = document.getElementById('msg_notification');
-		var msg_notification_1 = document.getElementById('msg_notification_1');
-		
-		$.ajax({
-		  url: "v-includes/class.fetchData.php",
-		  type: "POST",
-		  data: "refData=getMsgNotification"
-		}).success(function(data) {
-			if( data != 0 )
-			{
-			  notification_div.innerHTML = data;
-			  msg_notification_1.innerHTML = data;
-			}
-		});
-	}
-	
-	//make the first call
-	messageNotification();
-	
-	$( document ).ready(function() {
-	    setInterval(function() {messageNotification();}, 3000);
-	});
-	
-</script>
 
 <!-- header starts here -->
 <div class="navbar navbar-fixed-top profile_header_outline" role="navigation">
 	<?php if(isset($_SESSION['user_id']) && !empty($_SESSION['user_id'])){ ?>
-		<a href="#"><div class="inbox-nav"><span class="glyphicon glyphicon-exclamation-sign glyph"></span>ALERTS(0)</div></a>
-	    <a href="message-list.php"><div class="inbox-nav"><span class="glyphicon glyphicon-comment glyph"></span>INBOX(<span id="msg_notification">0</span>)</div></a>
-	    <a href="#"><div class="inbox-nav"><span class="glyphicon glyphicon-user glyph"></span><?php echo $manageContent->getUsername($_SESSION['user_id']);?></div></a>
+		<a href="notification-list.php"><div class="inbox-nav"><span class="glyphicon glyphicon-exclamation-sign glyph"></span>ALERTS(<?php $manageContent->getTotalUnreadNotification(); ?>)</div></a>
+	    <a href="message-list.php"><div class="inbox-nav"><img src="img/inbox_icon.png" alt="inbox_icon" class="inbox-icon-coustom"/>INBOX(<span id="msg_notification">0</span>)</div></a>
+	    <a><div class="inbox-nav"><span class="glyphicon glyphicon-user glyph"></span><?php echo $manageContent->getUsername($_SESSION['user_id']);?></div></a>
 	<?php } ?>
 	<div class="container">
     	<div class="row profile_header_row">
@@ -76,7 +49,7 @@
                         <span class="sr-only">Toggle navigation</span>
                         <span class="glyphicon glyphicon-align-justify"></span>
                     </button>
-                    <a class="navbar-brand profile_header_brand" href="index.php"><img src="img/page_logo.png" alt="logo"/></a>
+                    <a class="navbar-brand profile_header_brand" href="index.php"><img src="img/cygna-logo18.png" class="logo-img" alt="logo"/></a>
                 </div>
                 
                 <!-- Collect the nav links, forms, and other content for toggling -->

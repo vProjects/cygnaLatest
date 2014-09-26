@@ -3,7 +3,7 @@
 	$pageTitle = 'Withdraw';
 	if(!isset($GLOBALS['_COOKIE']['uid']) && !isset($_SESSION['user_id']))
 	{
-		header("Location: log_in.php");
+		header("Location: log-in.php");
 	}
 	include ("v-templates/header.php");
 
@@ -31,20 +31,13 @@
                     	<li><a href="message.php">Message</a></li>
                         <li><a href="escrow.php">Milestones</a></li>
                         <li><a href="#">Files</a></li>
-                        <li><a href="post_bid.php">My Proposal</a></li>
+                        <li><a href="post-bid.php">My Proposal</a></li>
                         <li><a href="#">Billings & Invoice</a></li>
                     </ul>
                 </div>
-                <div class="profile_box_outline">
-                	<div class="profile_box_heading">RUNNING PROJECTS</div>
-                    <ul class="profile_overview">
-                    	<li><a href="#">Lorem Ipsum</a></li>
-                        <li><a href="#">Lorem Ipsum</a></li>
-                        <li><a href="#">Lorem Ipsum</a></li>
-                        <li><a href="#">Lorem Ipsum</a></li>
-                        <li><a href="#">Lorem Ipsum</a></li>
-                    </ul>
-                </div>
+                <?php
+					include 'v-modules/user-running-projects.php';
+				?>
             </div>
             <!-- body left section ends here -->
             <!-- body middle section starts here -->
@@ -145,10 +138,10 @@
             </div>
             <!-- body middle section ends here -->
         	<!-- body right section starts here -->
-            <div class="col-md-2 profile_right_part_outline">
-            	<div class="add_place_outline"></div>
-                <div class="add_place_outline"></div>
-            </div>
+            <?php
+            	//add add section
+            	include 'v-modules/ads.php';
+            ?>
             <!-- body right section ends here -->
         </div>
     </div>

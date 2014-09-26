@@ -3,7 +3,7 @@
 	$pageTitle = 'Chat';
 	if(!isset($GLOBALS['_COOKIE']['uid']) && !isset($_SESSION['user_id']))
 	{
-		header("Location: log_in.php");
+		header("Location: log-in.php");
 	}
 	include ("v-templates/header.php");
 ?>
@@ -38,9 +38,9 @@
                     </ul>
                 </div>
                 <div class="profile_box_outline">
-                	<div class="profile_box_heading">BIDS LEFT</div>
-                    <div class="hiring_rate">39 Bids / 100 Bids</div>
-                </div>
+			        <div class="profile_box_heading">BIDS LEFT</div>
+			        <div class="hiring_rate"><?php echo $bids[0]['bids_remaining']; ?> Bids / <?php echo $bids[0]['total_bids']; ?> Bids</div>
+			    </div>
 			<?php
 				include ("v-templates/poll.php");
 			?>	
@@ -128,10 +128,10 @@
             </div>
             <!-- body middle part ends here -->
             <!-- body right section starts here -->
-            <div class="col-md-2 profile_right_part_outline">
-            	<div class="add_place_outline"></div>
-                <div class="add_place_outline"></div>
-            </div>
+            <?php
+            	//add add section
+            	include 'v-modules/ads.php';
+            ?>
             <!-- body right section ends here -->
         </div>
     </div>

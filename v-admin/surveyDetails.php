@@ -38,6 +38,18 @@
                             //getting editing values
                             $manageContent->getSurveyEdit($set_no);
                         }
+						//auth:debojyoti
+						else if($action == 'feedback')
+						{
+						echo '<div class="panel panel-default">
+		                        <div class="panel-heading"><i class="fa fa-tasks fa-fw"></i> List Of Feedback Details</div>
+		                        <div class="panel-body">';
+                            	//getting feedback details
+								$manageContent->getFeedbackDetails($set_no);
+						  echo '</div>
+		                    </div>';	
+						}
+                        //auth:debojyoti
                         
                     ?>
                     	

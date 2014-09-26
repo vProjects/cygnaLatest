@@ -3,7 +3,7 @@
 	$pageTitle = 'Profile';
 	if(!isset($GLOBALS['_COOKIE']['uid']) && !isset($_SESSION['user_id']))
 	{
-		header("Location: log_in.php");
+		header("Location: log-in.php");
 	}
 	include ("v-templates/header.php");
 ?>
@@ -24,9 +24,7 @@
     	<div class="row profile_body_row">
         	<?php include 'v-modules/profile-description.php'; ?>
             <!-- body right section starts here -->
-            <div class="col-md-2 profile_right_part_outline">
-            	<?php include 'v-modules/ads.php'; ?>
-            </div>
+            <?php include 'v-modules/ads.php'; ?>
             <!-- body right section ends here -->
         </div>
     </div>

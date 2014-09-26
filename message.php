@@ -3,19 +3,16 @@
 	$pageTitle = 'Message';
 	if(!isset($GLOBALS['_COOKIE']['uid']) && !isset($_SESSION['user_id']))
 	{
-		header("Location: log_in.php");
+		header("Location: log-in.php");
 	}
 	include ("v-templates/header.php");
 ?>
 <?php
 	if(isset($GLOBALS['_GET']['wid']))
 	{
-		$wid = $GLOBALS['_GET']['wid'];
+		//redirect to workroom page
+		header("Location: workroom.php?wid=".$GLOBALS['_GET']['wid']);
 	}
-	/*else
-	{
-		header("Location: cygna.php?op=pro");
-	}*/
 ?>
 <?php
 	//including post header to this page
@@ -44,10 +41,10 @@
 					{
 						include 'v-modules/right-nav.php';
 					}
-					//last loin widget
+					//last login widget
 					include 'v-modules/last-login.php';
 					
-					include ("v-templates/poll.php");
+					include ("v-modules/polling.php");
 				?>	
 			</div>	
 			
@@ -55,7 +52,7 @@
             <!-- body middle section starts here -->
             <div class="col-md-7 profile_middle_part_outline">
             	<div class="profile_box_outline billing_box_outline">
-                	<div class="profile_box_heading">Workroom For: PROJECT NAME</div>
+                	<div class="profile_box_heading">MESSAGE LIST</div>
                     <div class="billing_box_inner">
                     	<div class="billing_page_heading">Your Conversation</div>
                         <!-- message section starts here -->
@@ -84,10 +81,10 @@
             </div>
             <!-- body middle section ends here -->
             <!-- body right section starts here -->
-            <div class="col-md-2 profile_right_part_outline">
-            	<div class="add_place_outline"></div>
-                <div class="add_place_outline"></div>
-            </div>
+            <?php
+            	//add add section
+            	include 'v-modules/ads.php';
+            ?>
             <!-- body right section ends here -->
         </div>
     </div>

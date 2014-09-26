@@ -3,7 +3,7 @@
 	$pageTitle = 'Your Workroom';
 	if(!isset($GLOBALS['_COOKIE']['uid']) && !isset($_SESSION['user_id']))
 	{
-		header("Location: log_in.php");
+		header("Location: log-in.php");
 	}
 	include ("v-templates/header.php");
 ?>
@@ -13,10 +13,10 @@
 		$wid = $GLOBALS['_GET']['wid'];
 		$bid_id = $manageContent->getBidIdFromWid($_GET['wid']);
 	}
-	/*else
+	else
 	{
 		header("Location: cygna.php?op=pro");
-	}*/
+	}
 ?>
 <?php
 	//including post header to this page
@@ -43,20 +43,19 @@
 					}
 					else
 					{
-						echo '<div class="profile_box_outline project_list_leftbar_outline">
-								<div class="profile_box_heading">Quick Links</div>
-								<ul class="profile_overview">
-									<li><a href="cygna.php?op=job">JobList</a></li>
-									<li><a href="cygna.php?op=pro">ProjectList</a></li>
-								</ul>
-							</div>';
+						include 'v-modules/right-nav.php';
 					}
 				?>
                 <?php
 					include 'v-modules/user-running-projects.php';
 				?>
+				<?php
+					//getting last login details
+					//use the bll method to get the details
+					$manageContent->getLastLogin($bid_id);
+				?>
 			<?php
-				include ("v-templates/poll.php");
+				include ("v-modules/polling.php");
 			?>	
 			</div>	
 			
@@ -64,18 +63,18 @@
             <!-- body middle section starts here -->
             <div class="col-md-7 profile_middle_part_outline">
             	<div class="profile_box_outline billing_box_outline">
-                	<div class="profile_box_heading">Workroom For: PROJECT NAME</div>
+                	<div class="profile_box_heading project_title_outline_userdetails">MESSAGE LIST</div>
                     <div class="billing_box_inner">
                     	<div class="billing_page_heading">Your Conversation</div>
                         <!-- message section starts here -->
                         <div class="message_details_outline">
 	                        <!-- input msg starts here -->
 	                        <div class="input_msg_outline">
-	                             <div class="col-md-10 col-sm-10 col-xs-10">
-	                                <textarea rows="2" class="form-control input_msg_area" id="msg-bx"></textarea>
+	                             <div class="col-md-9 col-sm-9 col-xs-9">
+	                                <textarea rows="3" class="form-control input_msg_area" id="msg-bx"></textarea>
 	                             </div>
-	                             <div class="col-md-2 col-sm-2 col-xs-2">
-	                                <div class="input_msg_submit" onclick="sendmsg('msg-bx',<?php echo "'".$bid_id."'"; ?>)">SEND</div>
+	                             <div class="col-md-3 col-sm-3 col-xs-3 send-btn">
+	                                <div class="input_msg_submit postjob-submit-btn" onclick="sendmsg('msg-bx',<?php echo "'".$bid_id."'"; ?>)">SEND</div>
 	                             </div>
 	                             <div class="clearfix"></div>
 	                        </div>
@@ -93,10 +92,10 @@
             </div>
             <!-- body middle section ends here -->
             <!-- body right section starts here -->
-            <div class="col-md-2 profile_right_part_outline">
-            	<div class="add_place_outline"></div>
-                <div class="add_place_outline"></div>
-            </div>
+            <?php
+            	//add add section
+            	include 'v-modules/ads.php';
+            ?>
             <!-- body right section ends here -->
         </div>
     </div>

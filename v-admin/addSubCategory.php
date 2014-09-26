@@ -13,10 +13,11 @@
             <div class="alert alert-danger" id="warning_msg"></div>
             <div class="row">
                 <div class="col-lg-12">
-                    <h1 class="page-header">Add New Sub-Category</h1>
+                    <h1 class="page-header">Sub-Category Details</h1>
                 </div>
                 <!-- /.col-lg-12 -->
             </div>
+            <?php if(!isset($GLOBALS['_GET']['id'])) { ?>
             <!-- /.row -->
             <div class="row">
             	<div class="col-lg-12">
@@ -65,6 +66,60 @@
                 </div>
             </div>
             <!-- /.row -->
+            <?php
+             	} else {
+             		$subcat = $manageContent->getAdminSelectedDetails('subcategory','subCategoryId',$_GET['id']);
+            ?>
+            <!-- /.row -->
+            <div class="row">
+            	<div class="col-lg-12">
+                	<div class="panel panel-default">
+                        <div class="panel-heading"><i class="fa fa-plus-circle fa-fw"></i> Edit Sub-Category</div>
+                        <div class="panel-body">
+                        	<form action="v-includes/class.formData.php" role="form" method="post">
+                                <div class="form-group">
+                                    <label class="control-label p_label col-sm-3">Sub-Category Name</label>
+                                    <div class="col-sm-7">
+                                        <input type="text" class="form-control" name="name" value="<?php echo $subcat[0]['name'] ?>"/>
+                                    </div>
+                                    <div class="clearfix"></div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label col-sm-3">Category</label>
+                                    <div class="col-sm-7">
+                                        <?php
+			                        		//skills in the system
+			                        		$manageContent->getCategorySelect();
+			                        	?>
+                                    </div>
+                                    <div class="clearfix"></div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label col-sm-3">Sub-Category Skills</label>
+                                    <div class="col-sm-7">
+                                        <?php
+			                        		//skills in the system
+			                        		$manageContent->getSkillsSelect();
+			                        	?>
+                                    </div>
+                                    <div class="clearfix"></div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-sm-7 col-sm-offset-3">
+                                    	<input type="hidden" name="id" value="<?php echo $_GET['id'] ?>" />
+                                    	<input type="hidden" name="fn" value="<?php echo md5('edit_subcategory') ?>" />
+                                        <input type="submit" class="btn btn-success btn-lg" value="UPDATE" />
+                                    </div>
+                                    <div class="clearfix"></div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                   
+                </div>
+            </div>
+            <!-- /.row -->
+            <?php } ?>
             <div class="row">
             	<div class="col-lg-12">
                 	<div class="panel panel-default">

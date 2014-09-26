@@ -12,4 +12,9 @@
 		//setting cookie value
 		$manageContent->createUserCookie($_SESSION['user_id']);
 	}
+	//for renewal of bids of a user 
+	$manageContent->bidLeftsRenewal($_SESSION['user_id']);
+	
+	//for getting details of user_bid _details table by riju
+	$bids = $manageContent->getRemaingBidDetails($_SESSION['user_id']);
 ?>

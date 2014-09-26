@@ -239,6 +239,19 @@ function validiateUserTicketForm(form_name)
 	document.getElementById(form_name).submit();
 }
 
+//validation of advertise with us form by Riju
+function validateAdvertiseWithUsForm(form_name)
+{
+	validateRequiredField('adv_name','err_adv_name');
+	validateRequiredField('adv_company','err_adv_company');
+	validateRequiredField('adv_contact','err_adv_contact');
+	validateRequiredField('adv_email','err_adv_email');
+	validateRequiredField('adv_budget','err_adv_budget');
+	validateRequiredField('adv_msg','err_adv_msg');
+	//submit the advertise with us form
+	document.getElementById(form_name).submit();
+}
+
 /*
 	method for alert warning message
 	Auth: Dipanjan
@@ -284,6 +297,12 @@ $(document).ready(function(e) {
 	$('#userTicketBtn').click(function(e) {
         //calling validiation function
 		validiateUserTicketForm('userTicketForm');
+    });
+    
+    //by Riju
+    $('#advertise_btn').click(function(e) {
+    	//calling validation function
+    	validateAdvertiseWithUsForm('advertise_form');
     });
 });
 

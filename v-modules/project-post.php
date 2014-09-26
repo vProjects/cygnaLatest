@@ -16,11 +16,11 @@
             <label class="pp_form_label">Select the category</label>
             <div>
                 <select class="form-control pp_form_selectbox pull-left" id="pro_category" name="pro_category">
-                    <option value="Category1">Category 1</option>
-                    <option value="Category2">Category 2</option>
-                    <option value="Category3">Category 3</option>
-                    <option value="Category4">Category 4</option>
-                    <option value="Category5">Category 5</option>
+                	<option value="-1">Select An Category</option>
+                    <?php
+                    	//get category list
+                    	$manageContent->getPostProjectCategoryList();
+                    ?>
                 </select>
                 <select class="form-control pp_form_selectbox pull-left" id="pro_sub_category" name="pro_sub_category">
                     
@@ -42,42 +42,10 @@
         </div>
         <div class="form-group pp_form_group">
             <div class="form-control pp_form_textbox scrollable-content col-md-12">
-            	<label class="checkbox col-md-4">
-                  <input type="checkbox" name="skills[]" class="skills_checkbox" value="Skills 1"> Skill1
-                </label>
-                <label class="checkbox col-md-4">
-                  <input type="checkbox" name="skills[]" class="skills_checkbox" value="Skills 2"> Skill2
-                </label>
-                <label class="checkbox col-md-4">
-                  <input type="checkbox" name="skills[]" class="skills_checkbox" value="Skills 3"> Skill3
-                </label>
-                <label class="checkbox col-md-4">
-                  <input type="checkbox" name="skills[]" class="skills_checkbox" value="Skills 4"> Skill4
-                </label>
-                <label class="checkbox col-md-4">
-                  <input type="checkbox" name="skills[]" class="skills_checkbox" value="Skill 5"> Skill5
-                </label>
-                <label class="checkbox col-md-4">
-                  <input type="checkbox" name="skills[]" class="skills_checkbox" value="Skills 6"> Skill6
-                </label>
-                <label class="checkbox col-md-4">
-                  <input type="checkbox" name="skills[]" class="skills_checkbox" value="Skills 7"> Skill7
-                </label>
-                <label class="checkbox col-md-4">
-                  <input type="checkbox" name="skills[]" class="skills_checkbox" value="Skills 8"> Skill8
-                </label>
-                <label class="checkbox col-md-4">
-                  <input type="checkbox" name="skills[]" class="skills_checkbox" value="Skills 9"> Skill9
-                </label>
-                <label class="checkbox col-md-4">
-                  <input type="checkbox" name="skills[]" class="skills_checkbox" value="Skills 10"> Skill10
-                </label>
-                <label class="checkbox col-md-4">
-                  <input type="checkbox" name="skills[]" class="skills_checkbox" value="Skills 11"> Skill11
-                </label>
-                <label class="checkbox col-md-4">
-                  <input type="checkbox" name="skills[]" class="skills_checkbox" value="Skills 12"> Skill12
-                </label>
+            	<?php
+            		//get skill details
+            		$manageContent->getPostProjectSkillList();
+            	?>
             </div>
             
             
@@ -112,7 +80,7 @@
         </div>
         <div class="form-group pp_form_group">
         	<input type="hidden" name="fn" value="<?php echo md5('project_post'); ?>" />
-            <input type="submit" class="btn btn-success btn-lg" value="SUBMIT"/>
+            <input type="submit" class="btn btn-success btn-lg postjob-submit-btn" value="SUBMIT"/>
             <div class="clearfix"></div>
         </div>
         <div class="clearfix"></div>

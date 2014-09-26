@@ -1,5 +1,5 @@
 <div class="profile_box_outline">
-    <div class="profile_box_heading">RUNNING PROJECTS</div>
+    <div class="profile_box_heading">Running Projects</div>
     <ul class="profile_overview">
         <?php
 			$manageContent->getRunningProjectList($_SESSION['user_id']);

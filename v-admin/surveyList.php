@@ -29,6 +29,7 @@
                                     	<tr>
                                         	<th>Set No</th>
                                             <th>Details</th>
+                                            <th>Feedback</th>
                                             <th>Edit</th>
                                             <th>Current status</th>
                                             <th>Action</th>

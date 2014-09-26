@@ -3,7 +3,7 @@
 	$pageTitle = 'Escrow';
 	if(!isset($GLOBALS['_COOKIE']['uid']) && !isset($_SESSION['user_id']))
 	{
-		header("Location: log_in.php");
+		header("Location: log-in.php");
 	}
 	include ("v-templates/header.php");
 	
@@ -34,22 +34,15 @@
         			//include the workroom side bar
         			include ('v-modules/workroom.php');
         		?>
-                <div class="profile_box_outline">
-                	<div class="profile_box_heading">RUNNING PROJECTS</div>
-                    <ul class="profile_overview">
-                    	<li><a href="#">Lorem Ipsum</a></li>
-                        <li><a href="#">Lorem Ipsum</a></li>
-                        <li><a href="#">Lorem Ipsum</a></li>
-                        <li><a href="#">Lorem Ipsum</a></li>
-                        <li><a href="#">Lorem Ipsum</a></li>
-                    </ul>
-                </div>
+                <?php
+					include 'v-modules/user-running-projects.php';
+				?>
             </div>
             <!-- body left section ends here -->
             <!-- body middle section starts here -->
             <div class="col-md-7 profile_middle_part_outline">
             	<div class="profile_box_outline billing_box_outline">
-                	<div class="profile_box_heading">ESCROW PAGE</div>
+                	<div class="profile_box_heading project_title_outline_userdetails">ESCROW PAGE</div>
                     <div class="billing_box_inner">
                     	<div class="billing_page_heading">Escrow and Release Information</div>
                         <div class="billing_info_outline">
@@ -89,10 +82,10 @@
             </div>
             <!-- body middle section ends here -->
         	<!-- body right section starts here -->
-            <div class="col-md-2 profile_right_part_outline">
-            	<div class="add_place_outline"></div>
-                <div class="add_place_outline"></div>
-            </div>
+            <?php
+            	//add add section
+            	include 'v-modules/ads.php';
+            ?>
             <!-- body right section ends here -->
         </div>
     </div>

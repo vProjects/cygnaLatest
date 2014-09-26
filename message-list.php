@@ -3,7 +3,7 @@
 	$pageTitle = 'Message';
 	if(!isset($GLOBALS['_COOKIE']['uid']) && !isset($_SESSION['user_id']))
 	{
-		header("Location: log_in.php");
+		header("Location: log-in.php");
 	}
 	include ("v-templates/header.php");
 ?>
@@ -45,7 +45,7 @@
                 		include 'v-modules/right-nav.php';
 					}
 
-					include ("v-templates/poll.php");
+					include ("v-modules/polling.php");
 			?>	
 			</div>	
 			
@@ -53,7 +53,7 @@
             <!-- body middle section starts here -->
             <div class="col-md-7 profile_middle_part_outline">
             	<div class="profile_box_outline billing_box_outline">
-                	<div class="profile_box_heading">Inbox</div>
+                	<div class="profile_box_heading project_title_outline_userdetails">Inbox</div>
                     <div class="billing_box_inner">
                     	<div class="billing_page_heading">Messages</div>
 
@@ -72,10 +72,10 @@
             </div>
             <!-- body middle section ends here -->
             <!-- body right section starts here -->
-            <div class="col-md-2 profile_right_part_outline">
-            	<div class="add_place_outline"></div>
-                <div class="add_place_outline"></div>
-            </div>
+            <?php
+            	//add add section
+            	include 'v-modules/ads.php';
+            ?>
             <!-- body right section ends here -->
         </div>
     </div>

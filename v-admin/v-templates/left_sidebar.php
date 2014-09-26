@@ -21,9 +21,6 @@
                             <li>
                                 <a href="user-list.php">Member List</a>
                             </li>
-                            <li>
-                                <a href="#">Lorem Ipsum</a>
-                            </li>
                         </ul>
                         <!-- /.nav-second-level -->
                     </li>
@@ -88,37 +85,23 @@
                                 <a href="addSubCategory.php">Manage Sub-category</a>
                             </li>
                             <li>
-                                <a href="#">Lorem Ipsum</a>
-                            </li>
-                            <li>
-                                <a href="#">Lorem Ipsum</a>
-                            </li>
-                        </ul>
-                        <!-- /.nav-second-level -->
-                    </li>
-                    <li>
-                        <a href="#"><i class="fa fa-sitemap fa-fw"></i> Lorem Ipsum<span class="fa arrow"></span></a>
-                        <ul class="nav nav-second-level">
-                            <li>
-                                <a href="#">Second Level Item</a>
-                            </li>
-                            <li>
-                                <a href="#">Second Level Item</a>
-                            </li>
-                            <li>
-                                <a href="#">Third Level <span class="fa arrow"></span></a>
+                                <a href="#">Manage Page Content<span class="fa arrow"></span></a>
                                 <ul class="nav nav-third-level">
                                     <li>
-                                        <a href="#">Third Level Item</a>
+                                        <a href="addAboutUsContent.php">About Us</a>
                                     </li>
-                                    <li>
-                                        <a href="#">Third Level Item</a>
                                     </li>
+                                </ul>
+                                <!-- /.nav-third-level -->
+                            </li>
+                            <li>
+                                <a href="withdrawList.php?list=Processing">User Money Withdraw</a>
+                            </li>
+                            <li>
+                                <a href="#">Manage Advertisement<span class="fa arrow"></span></a>
+                                <ul class="nav nav-third-level">
                                     <li>
-                                        <a href="#">Third Level Item</a>
-                                    </li>
-                                    <li>
-                                        <a href="#">Third Level Item</a>
+                                        <a href="addAdvertisement.php">Add New Advertisement</a>
                                     </li>
                                 </ul>
                                 <!-- /.nav-third-level -->
@@ -127,14 +110,15 @@
                         <!-- /.nav-second-level -->
                     </li>
                     <li>
-                        <a href="#"><i class="fa fa-files-o fa-fw"></i> Lorem Ipsum<span class="fa arrow"></span></a>
+                        <a href="#"><i class="fa fa-sitemap fa-fw"></i> Manage Ticket<span class="fa arrow"></span></a>
                         <ul class="nav nav-second-level">
                             <li>
-                                <a href="#">Lorem Ipsum</a>
+                                <a href="manageUserTicket.php?status=0">User Ticket List</a>
                             </li>
                             <li>
-                                <a href="#">Lorem Ipsum</a>
+                                <a href="manageGuestTicket.php?status=0">Guest Ticket List</a>
                             </li>
+                            
                         </ul>
                         <!-- /.nav-second-level -->
                     </li>

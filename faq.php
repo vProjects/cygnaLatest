@@ -49,15 +49,15 @@
 						//calling the function
 						$manageContent->getFaqContent($page,$search_value);
 					?>
-                    
+                    <p>If you have additional questions, please <a href ="contact-us.php">contact us.</a></p> 
                 </div>
             </div>
             <!-- body left section ends here -->
             <!-- body right section starts here -->
-            <div class="col-md-2 profile_right_part_outline">
-            	<div class="add_place_outline"></div>
-                <div class="add_place_outline"></div>
-            </div>
+            <?php
+            	//add add section
+            	include 'v-modules/ads.php';
+            ?>
             <!-- body right section ends here -->
         </div>
     </div>

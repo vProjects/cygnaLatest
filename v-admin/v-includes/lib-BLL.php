@@ -343,7 +343,7 @@
 							<div class="col-sm-4">
 								<p>
 									<span class="project_list_topic">Skills: </span>
-									<span class="project_list_des">'.$project_skills.'</span>
+									<span class="project_list_des">'.$this->getSkillNameFromSkillIdAsString($project_skills).'</span>
 								</p>
 							</div>
 							<div class="col-sm-4">
@@ -494,7 +494,7 @@
                             </div>
 							<div class="mem_info_outline">
                             	<div class="mem_info_topic col-sm-4">Skills:</div>
-                                <div class="mem_info_text col-sm-8">'.$profile_info[0]['skills'].'</div>
+                                <div class="mem_info_text col-sm-8">'.$this->getSkillNameFromSkillIdAsString($profile_info[0]['skills']).'</div>
                                 <div class="clearfix"></div>
                             </div>
 							<div class="mem_info_outline">
@@ -555,7 +555,7 @@
 			}
 			else
 			{
-				echo '<h3 class="project_list_heading">No Rresult Found</h3>';
+				echo '<h3 class="project_list_heading">No Result Found</h3>';
 			}
 			echo '</div>
                  </div>';
@@ -710,6 +710,125 @@
 		}
 		
 		/*
+		- method for getting user money details
+		- Auth : Dipanjan
+		*/
+		function getUserMoneyDetails($user_id)
+		{
+			echo ' <div class="panel-heading"><i class="fa fa-list fa-fw"></i> Member Money Details Info</div>
+                        <div class="panel-body">';
+			//get the value from database
+			$money_details = $this->manage_content->getValue_where("user_money_info","*","user_id",$user_id);
+			//getting user total money details
+			$userMoney = $this->getUserTotalMoneyDetails($user_id, $money_details);
+			
+			echo '<div class="table-responsive">
+					<table class="table table-bordered">
+						<tbody>
+							<tr>
+								<td><b>Total Earnings:</b></td>
+								<td>$'.$userMoney[0].'</td>
+							</tr>
+							<tr>
+								<td><b>Total Withdrawal:</b></td>
+								<td>$'.$userMoney[1].'</td>
+							</tr>
+							<tr>
+								<td><b>Net Balance:</b></td>
+								<td>$'.$userMoney[2].'</td>
+							</tr>
+						</tbody>
+					</table>
+					</div>';
+			
+			echo '<div class="table-responsive">
+					<table class="table table-bordered table-hover">
+						<thead>
+							<tr>
+								<th>Specification</th>
+								<th>Date</th>
+								<th>Credit</th>
+								<th>Debit</th>
+								<th>Balance</th>
+							</tr>
+						</thead>
+						<tbody>';
+						
+					if(!empty($money_details[0]))
+					{	
+						foreach($money_details as $money)
+						{
+							
+							//getting the row color
+							if(substr($money['specification'],0,3) == 'mil')
+							{
+								$row_class = 'success';
+								//getting milestone details
+								$milestoneDetails = $this->manage_content->getValue_where('milestone_info', '*', 'milestone_id', $money['specification']);
+								$specification = 'Milestone - '.$milestoneDetails[0]['milestone_name'];
+							}
+							else if(substr($money['specification'],0,3) == 'wit')
+							{
+								$row_class = 'danger';
+								$specification = 'Withdraw';
+							}
+							
+							
+							echo '<tr class="'.$row_class.'">
+									<td>'.$specification.'</td>
+									<td>'.$money['date'].'</td>
+									<td>'; if(!empty($money['credit_amount'])){ echo '$';} echo $money['credit_amount'].'</td>
+									<td>'; if(!empty($money['debit_amount'])){ echo '$';} echo $money['debit_amount'].'</td>
+									<td>$'.$money['total_amount'].'</td>
+								</tr>';
+							
+						}
+			
+					}
+					else
+					{
+						echo '<tr>
+								<td colspan="5">No Result Found</td>
+							</tr>';
+					}
+				
+				echo '</tbody>
+					</table>
+					</div>
+					</div>
+                 </div>';
+		}
+		
+		/*
+		- method for user total money details
+		- Auth : Dipanjan
+		*/
+		function getUserTotalMoneyDetails($user_id,$money_details)
+		{
+			//declaring amount variable
+			$credit = 0;
+			$debit = 0;
+			$total = 0;
+			if(!empty($money_details[0]))
+			{
+				foreach($money_details as $money)
+				{
+					if(!empty($money['credit_amount']))
+					{
+						$credit = $credit + $money['credit_amount'];
+					}
+					if(!empty($money['debit_amount']))
+					{
+						$debit = $debit + $money['debit_amount'];
+					}
+				}
+			}
+			
+			$total = $credit - $debit;
+			return array($credit,$debit,$total);
+		}
+		
+		/*
 		- method for getting user activation details
 		- Auth : Dipanjan
 		*/
@@ -774,6 +893,7 @@
 			echo '</div>
                  </div>';
 		}
+
 		
 		/*
 		- method for getting project details of a project
@@ -854,14 +974,22 @@
 				{
 					//getting bid info of this bid
 					$bid_info = $this->manage_content->getValue_where('bid_info','*','bid_id',$project_details[0]['award_bid_id']);
-					if($bid_info[0]['awarded'] == 2)
+					if($bid_info[0]['awarded'] == 1)
 					{
-						$award_text = 'Job Is Awarded';
-						$time_remaining = 'Job Is Closed';
-					}
-					else if($bid_info[0]['awarded'] == 1)
-					{
-						$award_text = 'Job Is Awarded But Not Yet Accepted';
+						$award_info = $this->manage_content->getValue_where('award_info', '*', 'bid_id', $project_details[0]['award_bid_id']);
+						if($award_info[0]['is_accepted'] == 1)
+						{
+							$award_text = 'Job Is Awarded And Accepted';
+							$time_remaining = 'Job Is Closed';
+						}
+						else if($award_info[0]['is_declined'] == 1)
+						{
+							$award_text = 'Job Is Awarded But Declined By Contractor';
+						}
+						else if($award_info[0]['is_accepted'] != 1 && $award_info[0]['is_declined'] != 1)
+						{
+							$award_text = 'Job Is Awarded But Not Yet Accepted';
+						}
 					}
 					else
 					{
@@ -881,15 +1009,23 @@
 				{
 					$action_text = '<a class="list-group-item" href="project_details.php?pid='.$project_id.'&action=1"><button class="btn btn-success">Activate This Project</button></a>';
 				}
+				//getting workroom details
+				$workroom_details = $this->manage_content->getValueMultipleCondtn('workroom_info', '*', array('project_id','bid_id'), array($project_id,$project_details[0]['award_bid_id']));
+				
 				
 				
 				echo '<div class="list-group list_item">
 						<a class="list-group-item">Total Bids: '.$totalBid.'</a>
 						<a class="list-group-item">'.$time_remaining.'</a>
 						<a class="list-group-item">'.$award_text.'</a>
-						<a class="list-group-item">'.$project_details[0]['skills'].'</a>
-						<a class="list-group-item">'.$project_details[0]['price_range'].'</a>
-						<a class="list-group-item">Posted On: '.$project_details[0]['date'].' '.$project_details[0]['time'].'</a>
+						<a class="list-group-item">'.$this->getSkillNameFromSkillIdAsString($project_details[0]['skills']).'</a>
+						<a class="list-group-item">'.$project_details[0]['price_range'].'</a>';
+					if(!empty($workroom_details[0]))
+					{
+						echo '<a class="list-group-item" href="project_workroom_details.php?pid='.$project_id.'&wid='.$workroom_details[0]['workroom_id'].'&list=milestone">Milestone Details</a>';
+					}
+					
+				echo	'<a class="list-group-item">Posted On: '.$project_details[0]['date'].' '.$project_details[0]['time'].'</a>
 						'.$action_text.'
 					</div>';
 			}
@@ -914,17 +1050,18 @@
 				//checking bid is awarded or not
 				if(!empty($project_details[0]['award_bid_id']))
 				{
-					if($bid_details[0]['awarded'] == 2)
+					$award_info = $this->manage_content->getValue_where('award_info', '*', 'bid_id', $project_details[0]['award_bid_id']);
+					if($award_info[0]['is_accepted'] == 1)
 					{
-						$award_text = 'Bid Is Awarded';
+						$award_text = 'Bid Is Awarded And Accepted';
 					}
-					else if($bid_details[0]['awarded'] == 1)
+					else if($award_info[0]['is_declined'] == 1)
+					{
+						$award_text = 'Bid Is Awarded But Declined By Contractor';
+					}
+					else if($award_info[0]['is_accepted'] != 1 && $award_info[0]['is_declined'] != 1)
 					{
 						$award_text = 'Bid Is Awarded But Not Yet Accepted';
-					}
-					else
-					{
-						$award_text = 'Bid Is Not Awarded';
 					}
 				}
 				else
@@ -940,12 +1077,19 @@
 				{
 					$action_text = '<a class="list-group-item" href="bid_details.php?bid='.$bid_id.'&action=1"><button class="btn btn-success">Activate This Bid</button></a>';
 				}
+				//getting workroom details
+				$workroom_details = $this->manage_content->getValueMultipleCondtn('workroom_info', '*', array('project_id','bid_id'), array($bid_details[0]['project_id'],$bid_id));
 				
 				echo '<div class="list-group list_item">
 						<a class="list-group-item">Price: '.$bid_details[0]['currency'].$bid_details[0]['amount'].'</a>
 						<a class="list-group-item">Time: '.$bid_details[0]['time_range'].'</a>
-						<a class="list-group-item">'.$award_text.'</a>
-						<a class="list-group-item">Posted On: '.$bid_details[0]['date'].' '.$bid_details[0]['time'].'</a>
+						<a class="list-group-item">'.$award_text.'</a>';
+					if(!empty($workroom_details[0]))
+					{
+						echo '<a class="list-group-item" href="project_workroom_details.php?bid='.$bid_id.'&wid='.$workroom_details[0]['workroom_id'].'&list=milestone">Billing & Invoice Details</a>';
+					}	
+					
+				echo '<a class="list-group-item">Posted On: '.$bid_details[0]['date'].' '.$bid_details[0]['time'].'</a>
 						'.$action_text.'
 					</div>';
 			}
@@ -1253,7 +1397,7 @@
 						 
 						 echo '<div class="mem_info_outline">
 									<div class="mem_info_topic col-sm-3">Answer No '.$ans['answer_no'].':</div>
-									<div class="mem_info_text col-sm-8">'.$ansDetails[0]['question'].'</div>
+									<div class="mem_info_text col-sm-8">'.$ans['answer'].'</div>
 									<div class="col-sm-8 col-sm-offset-3">
 										<div class="progress">
 										  <div class="progress-bar '.$pr_bar.'" style="width: '.$per.'%" title="'.$per.'%">
@@ -1371,6 +1515,7 @@
 					echo '<tr>
 							<td>'.$setDetails[0]['set_no'].'</td>
 							<td><a href="surveyDetails.php?set_no='.$setDetails[0]['set_no'].'&action=details"><button class="btn btn-primary">Survey Details</button></a></td>
+							<td><a href="surveyDetails.php?set_no='.$setDetails[0]['set_no'].'&action=feedback"><button class="btn btn-primary">Feedback Details</button></a></td>
 							<td><a href="surveyDetails.php?set_no='.$setDetails[0]['set_no'].'&action=edit"><button class="btn btn-info">Edit Info</button></a></td>
 							<td>'.$cur_status.'</td>
 							<td>
@@ -1751,7 +1896,7 @@
 		{
 			$skills = $this->manage_content->getValue('skills','*');
 			foreach ($skills as $skill) {
-				echo '<button type="button" class="btn btn-info skills" readonly="readonly">'.$skill['name'].'</button>';
+				echo '<a href="addSkills.php?id='.$skill['skillId'].'"><button type="button" class="btn btn-info skills" readonly="readonly">'.$skill['name'].'</button></a>';
 			}
 		}
 
@@ -1780,7 +1925,7 @@
 		{
 			$categorys = $this->manage_content->getValue('category','*');
 			foreach ($categorys as $category) {
-				echo '<button type="button" class="btn btn-info skills" readonly="readonly">'.$category['name'].'</button>';
+				echo '<a href="addCategory.php?id='.$category['categoryId'].'"><button type="button" class="btn btn-info skills" readonly="readonly">'.$category['name'].'</button></a>';
 			}
 		}
 		
@@ -1793,7 +1938,7 @@
 		{
 			$subcategorys = $this->manage_content->getValue('subcategory','*');
 			foreach ($subcategorys as $subcategory) {
-				echo '<button type="button" class="btn btn-info skills" readonly="readonly">'.$subcategory['name'].'</button>';
+				echo '<a href="addSubCategory.php?id='.$subcategory['subCategoryId'].'"><button type="button" class="btn btn-info skills" readonly="readonly">'.$subcategory['name'].'</button></a>';
 			}
 		}
 		
@@ -1813,6 +1958,401 @@
 			
 			echo '</select>';
 		}
+		
+		/*
+		 * - method to get the About Us Menu for editting in the system
+		 * - Creates the Full UI
+		 * - Auth: Thakur
+		 */
+		function getAboutUsEditButton()
+		{
+			$titles = $this->manage_content->getValue('about_us','*');
+			foreach ($titles as $title) {
+				echo '<a href="editAbout.php?id='.$title['id'].'" class="btn btn-info skills" >'.$title['title'].'</a>';
+			}
+		}
+		
+		/*
+		 * - method to get the About Us Menu for editting in the system
+		 * - Creates the Full UI
+		 * - Auth: Thakur
+		 */
+		function getAboutUsEditDetails($id)
+		{
+			$titles = $this->manage_content->getValue_where('about_us', '*', 'id', $id);
+			return $titles;
+		}
+		
+		/*
+		- method for getting pending withdraw list
+		- Auth: Dipanjan
+		*/
+		function getPendingWithdrawList()
+		{
+			//get values fro database
+			$withList = $this->manage_content->getValueMultipleCondtnDesc('user_money_info', '*', array('status'), array('Processing'));
+			if(!empty($withList[0]))
+			{
+				foreach($withList as $with)
+				{
+					//getting user details
+					$userDetails = $this->manage_content->getValue_where('user_info', '*', 'user_id', $with['user_id']);
+					
+					echo '<tr>
+							<td>'.$userDetails[0]['name'].'</td>
+							<td>'.$with['date'].'</td>
+							<td>$'.$with['debit_amount'].'</td>
+							<td><a href="memberProfileDetails.php?uid='.$with['user_id'].'&action=money_details"><button class="btn btn-info">Details</button></a></td>
+							<td>
+								<form action="v-includes/class.formData.php" method="post">
+									<input type="hidden" name="fn" value="'.md5('action_withdraw').'" />
+									<input type="hidden" name="id" value="'.$with['id'].'" />
+									<input type="submit" class="btn btn-success" value="Release Amount" />
+								</form>
+							</td>
+						</tr>';
+				}
+			}
+			else
+			{
+				echo '<tr>
+						<td colspan="5">No Result Found</td>
+					</tr>';
+			}
+		}
+
+		/*
+		- method for getting successfull withdraw list
+		- Auth: Dipanjan
+		*/
+		function getSuccessfullWithdrawList()
+		{
+			//get values fro database
+			$withList = $this->manage_content->getValueMultipleCondtnDesc('user_money_info', '*', array('status'), array('Completed'));
+			if(!empty($withList[0]))
+			{
+				foreach($withList as $with)
+				{
+					//getting user details
+					$userDetails = $this->manage_content->getValue_where('user_info', '*', 'user_id', $with['user_id']);
+					
+					echo '<tr>
+							<td>'.$userDetails[0]['name'].'</td>
+							<td>'.$with['date'].'</td>
+							<td>$'.$with['debit_amount'].'</td>
+							<td><a href="memberProfileDetails.php?uid='.$with['user_id'].'&action=money_details"><button class="btn btn-info">Details</button></a></td>
+						</tr>';
+				}
+			}
+			else
+			{
+				echo '<tr>
+						<td colspan="4">No Result Found</td>
+					</tr>';
+			}
+		}
+		
+		/*
+		- method for getting milestone details
+		- Auth: Dipanjan
+		*/
+		function getMilestoneList($wid)
+		{
+			//getting details of milestone
+			$milestones = $this->manage_content->getValueMultipleCondtn('milestone_info', '*', array('workroom_id'), array($wid));
+			if(!empty($milestones[0]))
+			{
+				foreach($milestones as $milestone)
+				{
+					//getting fund details
+					if($milestone['funding_status'] == 1)
+					{
+						$fund_text = 'Funded at<br>'.$milestone['funding_date'];
+					}
+					else
+					{
+						$fund_text = 'Pending';
+					}
+
+					//getting release details
+					if($milestone['release_status'] == 1)
+					{
+						$release_text = 'Released at<br>'.$milestone['release_date'];
+					}
+					else
+					{
+						$release_text = 'Pending';
+					}
+					
+					echo '<tr>
+							<td>'.$milestone['milestone_name'].'</td>
+							<td>'.$milestone['start_date'].'</td>
+							<td>'.$milestone['end_date'].'</td>
+							<td>'.$milestone['amount'].'</td>
+							<td>'.$fund_text.'</td>
+							<td>'.$release_text.'</td>
+						</tr>';
+				}
+			}
+			else
+			{
+				echo '<tr>
+						<td colspan="6">No List Found</td>
+					</tr>';
+			}
+		}
+
+		/*
+		 - method for getting user's open ticket
+		 - Auth: Riju
+		 */
+		function getUserOpenTicketList()
+		{
+			//for getting list of tickets which are open
+			$ticket_list=$this->manage_content->getValueMultipleCondtnDesc('submit_ticket','*', array('status'), array('0'));
+			if(!empty($ticket_list[0]))
+			{
+				foreach($ticket_list as $ticket)
+				{
+					//for getting the matched userid
+					$userDetails=$this->manage_content->getValue_where('user_credentials','*','user_id', $ticket['user_id']);
+					
+					echo '<tr>
+							<td>'.$userDetails[0]['email_id'].'</td>
+							<td>'.$ticket['title'].'</td>
+							<td>'.$ticket['subject'].'</td>
+							<td>'.$ticket['date'].'</td>
+							<td>'.$ticket['time'].'</td>
+							<td><a href="ticketDetails.php?tid='.$ticket_list[0]['ticket_id'].'&id='.$ticket_list[0]['user_id'].'"><button class="btn btn-info">Details</button></a></td>
+							</tr>';
+							
+					
+				}
+			}
+		}
+		
+		/*
+		 - method for getting User's closed ticket
+		 - Auth: Riju
+		 */
+		function getUserClosedTicketList()
+		{
+			//for getting list of tickets which are open
+			$ticket_list=$this->manage_content->getValueMultipleCondtnDesc('submit_ticket','*', array('status'), array('1'));
+			if(!empty($ticket_list[0]))
+			{
+				foreach($ticket_list as $ticket)
+				{
+					//for getting the matched userid
+					$userDetails=$this->manage_content->getValue_where('user_credentials','*','user_id', $ticket['user_id']);
+					
+					echo '<tr>
+							<td>'.$userDetails[0]['email_id'].'</td>
+							<td>'.$ticket['title'].'</td>
+							<td>'.$ticket['subject'].'</td>
+							<td>'.$ticket['date'].'</td>
+							<td>'.$ticket['time'].'</td>
+							<td><a href="ticketDetails.php?tid='.$ticket_list[0]['ticket_id'].'&id='.$ticket_list[0]['user_id'].'"><button class="btn btn-info">Details</button></a></td>
+							</tr>' ;
+							
+					
+				}
+			}
+		}
+		
+		/*
+		 - method for getting Guest's open ticket
+		 - Auth: Riju
+		 */
+		function getGuestOpenTicketList()
+		{
+			//for getting list of tickets which are open
+			$ticket_list=$this->manage_content->getValueMultipleCondtnDesc('contact_us','*', array('status'), array('0'));
+			if(!empty($ticket_list[0]))
+			{
+				foreach($ticket_list as $ticket)
+				{
+					echo '<tr>
+							<td>'.$ticket['email'].'</td>
+							<td>'.$ticket['name'].'</td>
+							<td>'.$ticket['title'].'</td>
+							<td>'.$ticket['subject'].'</td>
+							<td>'.$ticket['date'].'</td>
+							<td>'.$ticket['time'].'</td>
+							<td><a href="ticketDetails.php?rid='.$ticket['request_id'].'"><button class="btn btn-info">Details</button></a></td>
+						</tr>' ;
+				}
+			}
+		}
+		
+		/*
+		 - method for getting Guest's closed ticket
+		 - Auth: Riju
+		 */
+		function getGuestClosedTicketList()
+		{
+			//for getting list of tickets which are closed
+			$ticket_list=$this->manage_content->getValueMultipleCondtnDesc('contact_us','*', array('status'), array('1'));
+			if(!empty($ticket_list[0]))
+			{
+				foreach($ticket_list as $ticket)
+				{
+					 echo '<tr>
+							<td>'.$ticket['email'].'</td>
+							<td>'.$ticket['name'].'</td>
+							<td>'.$ticket['title'].'</td>
+							<td>'.$ticket['subject'].'</td>
+							<td>'.$ticket['date'].'</td>
+							<td>'.$ticket['time'].'</td>
+							<td><a href="ticketDetails.php?rid='.$ticket['request_id'].'"><button class="btn btn-info">Details</button></a></td>
+						</tr>' ;
+				}
+				
+			}
+		}
+		
+		/*
+		 - method for getting User's ticket details
+		 - Auth: Riju
+		 */
+		 function getUserTicketDetails($u_id)
+		 {
+		 	$details=$this->manage_content->getValue_where('submit_ticket','*', 'ticket_id',$u_id);
+			return $details;
+		 }
+		 
+		 /*
+		 - method for getting Guest's ticket details
+		 - Auth: Riju
+		 */
+		 function getGuestTicketDetails($req_id)
+		 {
+		 	$details=$this->manage_content->getValue_where('contact_us','*', 'request_id',$req_id);
+			return $details;
+		 }
+		 
+		 /*
+		 - method for getting emailid for user ticket details form
+		 - Auth: Riju
+		 */
+		 
+		 function getUserEmailId($u_id)
+		 {
+		 	$email=$this->manage_content->getValue_where('user_credentials','*','user_id',$u_id);
+			return $email;
+		 }
+		 
+		 /*
+		 - method for getting name and ph.no for user ticket details form
+		 - Auth: Riju
+		 */
+		 
+		 function getUserDetails($u_id)
+		 {
+		 	$nameph=$this->manage_content->getValue_where('user_info','*','user_id',$u_id);
+			return $nameph;
+		 }
+		 
+		 /*
+		 - method for getting admin skill details
+		 - Auth: Dipanjan
+		 */
+		 
+		 function getAdminSelectedDetails($table,$column_name,$column_value)
+		 {
+		 	return $this->manage_content->getValue_where($table,'*',$column_name,$column_value);
+		 }
+
+		/*
+		 * - method to get the Advertisement Menu for editting in the system
+		 * - Creates the Full UI
+		 * - Auth: Debojyoti
+		 */
+		 function getAdvertisementEditButton()
+		 {
+			$ads = $this->manage_content->getValue('advertisement','*');
+			if(!empty($ads[0]))
+			{
+				foreach ($ads as $ad) {
+					echo '<a href="editAdv.php?id='.$ad['uniqueId'].'" class="btn btn-info skills" >'.$ad['owner-name'].'</a>';
+				}
+			}
+				
+		 }
+		
+		/*
+		 * - method to get the Advertisement Details for editting in the system
+		 * - Creates the Full UI
+		 * - Auth: Debojyoti
+		 */
+		 function getAdvEditDetails($id)
+		 {
+			$adv = $this->manage_content->getValue_where('advertisement', '*', 'uniqueId', $id);
+			return $adv[0];
+		 }
+		 
+		 /*
+		 * -method to get feedback details corresponding to a specific survey set
+		 * Auth:Debojyoti
+		 */
+		 function getFeedbackDetails($set_no)
+		 {
+		 	//getting feedback details from database
+		 	$feedbacks = $this->manage_content->getValue_where('survey_feedback', '*', 'set_no',$set_no);
+			if(!empty($feedbacks[0]))
+			{
+				foreach($feedbacks as $feedback)
+				{
+					//getting username from userid
+					$username = $this->manage_content->getValue_where('user_credentials', '*', 'user_id', $feedback['user_id']);
+					if($feedback['user_id'] == 'guest')
+							{
+								echo '<span style="font-style:italic;font-size:30px;text-decoration:underline">Guest</span><br>';
+							}
+							else 
+							{
+								echo '<span style="font-style:italic;font-size:30px;text-decoration:underline">'.$username[0]['username'].'</span><br>';
+							}
+					echo $feedback['feedback']."<br><br><br>";
+				}
+			}
+			else 
+			{
+				//echoing no value	
+				echo 'No Feedback List for this set';
+			}
+			
+		 }
+		 
+		 /*
+		- method for getting skill name from skill id
+		- Auth: Dipanjan
+		*/
+		function getSkillNameFromSkillId($skillId)
+		{
+			$skillDetails = $this->manage_content->getValue_where('skills', '*', 'skillId', $skillId);
+			return $skillDetails[0]['name'];
+		}
+		
+		/*
+		- method for getting skill name from skill id As String
+		- Auth: Dipanjan
+		*/
+		function getSkillNameFromSkillIdAsString($skills)
+		{
+			$skill_string = '';
+			if(!empty($skills))
+			{
+				$skill_set = explode(',', $skills);
+				foreach($skill_set as $key=>$value)
+				{
+					$skill_string = $skill_string.','.$this->getSkillNameFromSkillId($value);
+				}
+				$skill_string = substr($skill_string, 1);
+			}
+			return $skill_string;
+		}
+
 	}
 	
 ?>

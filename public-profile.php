@@ -1,10 +1,7 @@
 <?php
 	session_start();
 	$pageTitle = 'Profile';
-	if(!isset($GLOBALS['_COOKIE']['uid']) && !isset($_SESSION['user_id']))
-	{
-		header("Location: log_in.php");
-	}
+	
 	include ("v-templates/header.php");
 ?>
 <?php
@@ -127,9 +124,9 @@
             </div>
             <!-- body middle section ends here -->
             <!-- body right section starts here -->
-            <div class="col-md-2 profile_right_part_outline">
+            
             	<?php include 'v-modules/ads.php'; ?>
-            </div>
+            
             <!-- body right section ends here -->
         </div>
     </div>

@@ -29,7 +29,7 @@
 			$this->manageContent = new ManageContent_DAL();
 			$this->manageUtility = new utility();
 			$this->manageFileUploader = new FileUpload();
-			$this->mailSent = new Mail();
+			$this->mailSent = new mailFunction();
 		}
 		
 		/*
@@ -80,12 +80,19 @@
 		*/
 		function getSubCategory($category)
 		{
-			/* Initially we set sub categories are same */
-			echo '<option value="Sub Category 1">Sub Category 1</option>
-					<option value="Sub Category 2">Sub Category 2</option>
-					<option value="Sub Category 3">Sub Category 3</option>
-					<option value="Sub Category 4">Sub Category 4</option>
-					<option value="Sub Category 5">Sub Category 5</option>';
+			//get values of sub category of this category
+			$subcatList = $this->manageContent->getValue_where('subcategory', '*', 'categoryId', $category);
+			if(!empty($subcatList[0]))
+			{
+				foreach($subcatList as $subcat)
+				{
+					echo '<option value="'.$subcat['subCategoryId'].'">'.$subcat['name'].'</option>';
+				}
+			}
+			else
+			{
+				echo '<option>No Subcategory</option>';
+			}
 		}
 		
 		/*
@@ -200,6 +207,11 @@
 			}
 			//updating the user id field
 			$update = $this->manageContent->updateValueWhere("polling_info","user_id",$new_user_id,"id",$users[0]['id']);
+			
+			//get user credentials
+			$userCred = $this->getEmailIdFromUserId($user_id);
+			//sending mail
+			$this->mailSent->mailAfterPolling($userCred[0], $userCred[1]);
 		}
 		
 		/*
@@ -262,7 +274,7 @@
 						{
 							echo '<div class="project_details_outline">
 									<div class="project_title_outline">
-										<span class="pull-left project_title_text"><a href="post_bid.php">'.$job['title'].'</a></span>
+										<span class="pull-left project_title_text"><a href="post-bid.php">'.$job['title'].'</a></span>
 										<span class="pull-right project_bid_button"><img src="img/hammer.png" /><span class="project_bid_text">Bid</span></span>
 										<div class="clearfix"></div>
 									</div>
@@ -322,7 +334,7 @@
 				{
 					echo '<div class="project_details_outline">
 							<div class="project_title_outline">
-								<span class="pull-left project_title_text"><a href="post_bid.php">'.$job['title'].'</a></span>
+								<span class="pull-left project_title_text"><a href="post-bid.php">'.$job['title'].'</a></span>
 								<span class="pull-right project_bid_button"><img src="img/hammer.png" /><span class="project_bid_text">Bid</span></span>
 								<div class="clearfix"></div>
 							</div>
@@ -391,6 +403,10 @@
 					$column_value_award = array($award_id,$project_id,$bid_id,$employer_id,$contractor_id,$date,0,"0000-00-00 00:00:00",0,1);
 					$insert = $this->manageContent->insertValue("award_info",$column_name_award,$column_value_award);
 					
+					//getting contractor user details
+					$user_con = $this->getEmailIdFromUserId($bid_details[0]['user_id']);
+					//send email to contractor
+					$this->mailSent->mailForAwardJob($user_con[0], $user_con[1], $project_details[0]['title']);
 					
 					echo 'Successfully Awarded.';
 				}
@@ -490,6 +506,9 @@
 			//get the project details on which bid is made
 			$project_details = $this->manageContent->getValue_where("project_info","*","project_id",$bid_details[0]['project_id']);
 			
+			//get award info of this job
+			$award_info = $this->manageContent->getValue_where("award_info","*","project_id",$bid_details[0]['project_id']);
+			
 			//check for the valid contractor
 			if( $_SESSION['user_id'] == $bid_details[0]['user_id'] && !empty($project_details) )
 			{
@@ -503,15 +522,26 @@
 					//create the variables
 					$workroom_id = uniqid('wkrm');
 					$project_id = $bid_details[0]['project_id'];
-					$employer_id = $bid_details[0]['user_id'];
-					$contractor_id = $project_details[0]['user_id'];
-					$date = date('Y-m-h');
+					$employer_id = $project_details[0]['user_id'];
+					$contractor_id = $bid_details[0]['user_id'];
+					$date = date('Y-m-d');
 					$time = date('h:i:s');
 					
 					//insert the values
 					$column_name = array("workroom_id", "project_id", "bid_id", "emp_user_id", "con_user_id", "date", "time", "job_status");
 					$column_value = array($workroom_id, $project_id, $postData['bid'], $employer_id, $contractor_id, $date, $time,1);
 					$insert = $this->manageContent->insertValue("workroom_info",$column_name,$column_value);
+					if($insert == 1)
+					{
+						//get contractor details
+						$con_details = $this->manageContent->getValue_where('user_info', '*', 'user_id', $bid_details[0]['user_id']);
+						//getting employer details
+						$emp_details = $this->getEmailIdFromUserId($project_details[0]['user_id']);
+						//sending mail to employer
+						$this->mailSent->mailForAcceptingJob($emp_details[0], $emp_details[1], $con_details[0]['name'], $project_details[0]['title']);
+						
+						echo 'Successfully Awarded';
+					}
 				}
 			}
 			else
@@ -532,7 +562,331 @@
 			
 			if( $update_1 == 1 && $update_2 == 1 )
 			{
+				//get the bid information
+				$bid_details = $this->manageContent->getValue_where('bid_info','*','bid_id',$postData['bid']);
+				
+				//get the project details on which bid is made
+				$project_details = $this->manageContent->getValue_where("project_info","*","project_id",$bid_details[0]['project_id']);
+				
+				//get contractor details
+				$con_details = $this->manageContent->getValue_where('user_info', '*', 'user_id', $bid_details[0]['user_id']);
+				//getting employer details
+				$emp_details = $this->getEmailIdFromUserId($project_details[0]['user_id']);
+				//sending mail to employer
+				$this->mailSent->mailForDecliningJob($emp_details[0], $emp_details[1], $con_details[0]['name'], $project_details[0]['title']);
+				
 				echo "Successfully declined.";
+			}
+		}
+		
+		/*
+		- method for responsible releasing money to contractor
+		- Auth: Dipanjan
+		*/
+		function releaseMoneyToContractor($userData)
+		{
+			$date = date('Y-m-d');
+			//checking for milestone id and workroom id
+			$milestone = $this->manageContent->getValue_where('milestone_info', '*', 'milestone_id', $userData['milestone']);
+			if(!empty($milestone[0]))
+			{
+				//get workroom details
+				$workroom = $this->manageContent->getValue_where('workroom_info', '*', 'workroom_id', $milestone[0]['workroom_id']);
+				if($workroom[0]['emp_user_id'] == $_SESSION['user_id'] && $milestone[0]['funding_status'] == 1)
+				{
+					//update releasing value
+					$update = $this->manageContent->updateMultipleValueMulCondition('milestone_info', array('release_status','release_date'), array(1,$date), array('milestone_id'), array($milestone[0]['milestone_id']));
+					//insert valus to user money info table
+					$column_name = array('specification','user_id','date','credit_amount','total_amount','status');
+					//getting user total amount
+					$user_amount = $this->manageContent->getLastValue('user_money_info', '*', 'user_id', $workroom[0]['con_user_id'], 'id');
+					$new_user_money = $user_amount[0]['total_amount'] + $milestone[0]['amount'];
+					$column_value = array($milestone[0]['milestone_id'],$workroom[0]['con_user_id'],date('Y-m-d h:m:s a'),$milestone[0]['amount'],$new_user_money,1);
+					$insert = $this->manageContent->insertValue('user_money_info', $column_name, $column_value);
+					
+					if($update != 0 && $insert != 0)
+					{
+						//get project details
+						$proDetails = $this->manageContent->getValue_where('project_info', '*', 'project_id',$workroom[0]['project_id']);
+						//get contractor info
+						$conInfo = $this->getEmailIdFromUserId($user_id);
+						//sending mail
+						$this->mailSent->mailForReleasingMoney($conInfo[0], $conInfo[1], $milestone[0]['milestone_name'], $proDetails[0]['title']);
+						
+						echo 'Money Released';
+					}
+					else
+					{
+						echo 'Process Unsuccessfull';
+					}
+				}
+				else 
+				{
+					echo 'Money Cant Be Released';
+				}
+			}
+		}
+		
+		/*
+		- method for fund release request
+		- Auth: Dipanjan
+		*/
+		function sendFundRequestToEmployer($userData)
+		{
+			$datetime = date('Y-m-d h:i:s a');
+			//checking for milestone id and workroom id
+			$milestone = $this->manageContent->getValue_where('milestone_info', '*', 'milestone_id', $userData['milestone']);
+			if(!empty($milestone[0]))
+			{
+				//get workroom details
+				$workroom = $this->manageContent->getValue_where('workroom_info', '*', 'workroom_id', $milestone[0]['workroom_id']);
+				if(!empty($workroom[0]) && $workroom[0]['con_user_id'] == $_SESSION['user_id'])
+				{
+					//get project details
+					$project_details = $this->manageContent->getValue_where('project_info', '*', 'project_id', $workroom[0]['project_id']);
+					//get sending user details
+					$con_user_details = $this->manageContent->getValue_where('user_info', '*', 'user_id', $_SESSION['user_id']);
+					//creating notification id
+					$noti_id = uniqid('noti');
+					$sending_user = $workroom[0]['emp_user_id'];
+					$page_link = 'escrow.php?wid='.$workroom[0]['workroom_id'];
+					$message = 'Funding Request of <b>'.$milestone[0]['milestone_name'].'</b> from <b>'.$con_user_details[0]['name'].'</b> for <b>'.$project_details[0]['title'].'</b>';
+					$column_name = array('notification_id','message','date','user_id','project_id','from_user','page_link','view_status');
+					$column_value = array($noti_id,$message,$datetime,$workroom[0]['emp_user_id'],$workroom[0]['project_id'],$_SESSION['user_id'],$page_link,0);
+					$insert = $this->manageContent->insertValue('notification_info', $column_name, $column_value);
+					if($insert != 0)
+					{
+						echo 'Request Send Successfully';
+					}
+				}
+				else
+				{
+					echo 'Request Can Not Be Sent';
+				}
+			}
+				
+		}
+
+		/*
+		- method for release money request
+		- Auth: Dipanjan
+		*/
+		function sendReleasingRequestToEmployer($userData)
+		{
+			$datetime = date('Y-m-d h:i:s a');
+			//checking for milestone id and workroom id
+			$milestone = $this->manageContent->getValue_where('milestone_info', '*', 'milestone_id', $userData['milestone']);
+			if(!empty($milestone[0]))
+			{
+				//get workroom details
+				$workroom = $this->manageContent->getValue_where('workroom_info', '*', 'workroom_id', $milestone[0]['workroom_id']);
+				if(!empty($workroom[0]) && $workroom[0]['con_user_id'] == $_SESSION['user_id'] && $milestone[0]['funding_status'] == 1)
+				{
+					//get project details
+					$project_details = $this->manageContent->getValue_where('project_info', '*', 'project_id', $workroom[0]['project_id']);
+					//get sending user details
+					$con_user_details = $this->manageContent->getValue_where('user_info', '*', 'user_id', $_SESSION['user_id']);
+					//creating notification id
+					$noti_id = uniqid('noti');
+					$sending_user = $workroom[0]['emp_user_id'];
+					$page_link = 'escrow.php?wid='.$workroom[0]['workroom_id'];
+					$message = 'Money Release Request of <b>'.$milestone[0]['milestone_name'].'</b> from <b>'.$con_user_details[0]['name'].'</b> for <b>'.$project_details[0]['title'].'</b>';
+					$column_name = array('notification_id','message','date','user_id','project_id','from_user','page_link','view_status');
+					$column_value = array($noti_id,$message,$datetime,$workroom[0]['emp_user_id'],$workroom[0]['project_id'],$_SESSION['user_id'],$page_link,0);
+					$insert = $this->manageContent->insertValue('notification_info', $column_name, $column_value);
+					if($insert != 0)
+					{
+						echo 'Request Send Successfully';
+					}
+				}
+				else
+				{
+					echo 'Request Can Not Be Sent';
+				}
+			}
+				
+		}
+
+		/*
+		- method for updating notification status
+		- Auth: Dipanjan
+		*/
+		function updateNotificationStatus($userData)
+		{
+			//update status
+			$update = $this->manageContent->updateValueWhere('notification_info', 'view_status', 1, 'notification_id', $userData['noti_id']);
+			echo $update;
+		}
+		
+		/*
+		- method for getting email from user id
+		- Auth: Dipanjan
+		*/
+		function getEmailIdFromUserId($user_id)
+		{
+			$user = $this->manageContent->getValue_where('user_credentials', '*', 'user_id', $user_id);
+			return array($user[0]['email_id'],$user[0]['username']);
+		}
+
+		/*
+		- method for uploading profile image
+		- Auth: Dipanjan
+		*/
+		function uploadProfileImageForUser($userData)
+		{
+			//takes the image size
+			$img = getimagesize('../temp/'.$userData['imagename']);
+			//print_r($img);
+			//gets the image extension
+			$ext = pathinfo('../temp/'.$userData['imagename'], PATHINFO_EXTENSION);
+		
+			$responsiveWidth = $userData['width'];
+			$responsiveHeight = $userData['height'];
+			
+			$actualWidth = $img[0];
+			$actualHeight = $img[1];
+			
+			$xCoordinate = ($actualWidth/$responsiveWidth)*$userData['xcordinate'];
+			$yCoordinate = ($actualHeight/$responsiveHeight)*$userData['ycordinate'];
+			
+			
+			$targ_w = ($actualWidth/$responsiveWidth)*300;
+			$targ_h = ($actualHeight/$responsiveHeight)*300;
+			
+			
+			$jpeg_quality = 90;
+			$png_quality = 9;
+			
+			$src = '../temp/'.$userData['imagename'];
+			
+			
+			if($ext == 'png') {
+				$img_r = imagecreatefrompng($src);
+				$dst_r = ImageCreateTrueColor( $targ_w, $targ_h );
+				imagecopyresampled($dst_r,$img_r,0,0,$xCoordinate,$yCoordinate,$targ_w,$targ_h,$targ_w,$targ_h);
+				//save image in admin panel
+				//imagepng($dst_r,'../../img/product'.$GLOBALS['_POST']['imagename'], $png_quality);
+				//save image in ui product folder
+				imagepng($dst_r,'../files/pro-image/'.$userData['imagename'], $png_quality);
+				
+				//save the product image into the database
+				$this->saveUserPic($userData['imagename'],'pro');
+			}
+			else if($ext == 'jpeg' ) {
+				$img_r = imagecreatefromjpeg($src);
+				$dst_r = ImageCreateTrueColor( $targ_w, $targ_h );
+				imagecopyresampled($dst_r,$img_r,0,0,$xCoordinate,$yCoordinate,$targ_w,$targ_h,$targ_w,$targ_h);
+				//save image in admin panel
+				//imagejpeg($dst_r,'../../img/product'.$GLOBALS['_POST']['imagename'], $jpeg_quality);
+				//save image in ui product folder
+				imagejpeg($dst_r,'../files/pro-image/'.$userData['imagename'], $jpeg_quality);
+				
+				//save the product image into the database
+				$this->saveUserPic($userData['imagename'],'pro');
+			}
+			else if($ext == 'jpg') {
+				$img_r = imagecreatefromjpeg($src);
+				$dst_r = ImageCreateTrueColor( $targ_w, $targ_h );
+				imagecopyresampled($dst_r,$img_r,0,0,$xCoordinate,$yCoordinate,$targ_w,$targ_h,$targ_w,$targ_h);
+				//save image in admin panel
+				//imagejpeg($dst_r,'../../img/product'.$GLOBALS['_POST']['imagename'], $jpeg_quality);
+				//save image in ui product folder
+				imagejpeg($dst_r,'../files/pro-image/'.$userData['imagename'], $jpeg_quality);
+				
+				//save the product image into the database
+				$this->saveUserPic($userData['imagename'],'pro');
+			}
+			
+		}
+
+		/*
+		- method for uploading cover image
+		- Auth: Dipanjan
+		*/
+		function uploadCoverImageForUser($userData)
+		{
+			//takes the image size
+			$img = getimagesize('../temp/'.$userData['imagename']);
+			//print_r($img);
+			//gets the image extension
+			$ext = pathinfo('../temp/'.$userData['imagename'], PATHINFO_EXTENSION);
+		
+			$responsiveWidth = $userData['width'];
+			$responsiveHeight = $userData['height'];
+			
+			$actualWidth = $img[0];
+			$actualHeight = $img[1];
+			
+			$xCoordinate = ($actualWidth/$responsiveWidth)*$userData['xcordinate'];
+			$yCoordinate = ($actualHeight/$responsiveHeight)*$userData['ycordinate'];
+			
+			
+			$targ_w = ($actualWidth/$responsiveWidth)*300;
+			$targ_h = ($actualHeight/$responsiveHeight)*300;
+			
+			
+			$jpeg_quality = 90;
+			$png_quality = 9;
+			
+			$src = '../temp/'.$userData['imagename'];
+			
+			
+			if($ext == 'png') {
+				$img_r = imagecreatefrompng($src);
+				$dst_r = ImageCreateTrueColor( $targ_w, $targ_h );
+				imagecopyresampled($dst_r,$img_r,0,0,$xCoordinate,$yCoordinate,$targ_w,$targ_h,$targ_w,$targ_h);
+				//save image in admin panel
+				//imagepng($dst_r,'../../img/product'.$GLOBALS['_POST']['imagename'], $png_quality);
+				//save image in ui product folder
+				imagepng($dst_r,'../files/cov-image/'.$userData['imagename'], $png_quality);
+				
+				//save the product image into the database
+				$this->saveUserPic($userData['imagename'],'cov');
+			}
+			else if($ext == 'jpeg' ) {
+				$img_r = imagecreatefromjpeg($src);
+				$dst_r = ImageCreateTrueColor( $targ_w, $targ_h );
+				imagecopyresampled($dst_r,$img_r,0,0,$xCoordinate,$yCoordinate,$targ_w,$targ_h,$targ_w,$targ_h);
+				//save image in admin panel
+				//imagejpeg($dst_r,'../../img/product'.$GLOBALS['_POST']['imagename'], $jpeg_quality);
+				//save image in ui product folder
+				imagejpeg($dst_r,'../files/cov-image/'.$userData['imagename'], $jpeg_quality);
+				
+				//save the product image into the database
+				$this->saveUserPic($userData['imagename'],'cov');
+			}
+			else if($ext == 'jpg') {
+				$img_r = imagecreatefromjpeg($src);
+				$dst_r = ImageCreateTrueColor( $targ_w, $targ_h );
+				imagecopyresampled($dst_r,$img_r,0,0,$xCoordinate,$yCoordinate,$targ_w,$targ_h,$targ_w,$targ_h);
+				//save image in admin panel
+				//imagejpeg($dst_r,'../../img/product'.$GLOBALS['_POST']['imagename'], $jpeg_quality);
+				//save image in ui product folder
+				imagejpeg($dst_r,'../files/cov-image/'.$userData['imagename'], $jpeg_quality);
+				
+				//save the product image into the database
+				$this->saveUserPic($userData['imagename'],'cov');
+			}
+			
+		}
+
+		 
+		/*
+		- method for adding cropped profile image
+		- Auth: Dipanjan
+		*/
+		function saveUserPic($img,$action)
+		{
+			//checking that product with order id is present or not
+			if($action == 'pro')
+			{
+				//update user profile pic
+				$update = $this->manageContent->updateValueWhere('user_info', 'profile_image', 'files/pro-image/'.$img, 'user_id', $_SESSION['user_id']);
+			}
+			elseif($action == 'cov')
+			{
+				//update user cover pic
+				$update = $this->manageContent->updateValueWhere('user_info', 'cover_image', 'files/cov-image/'.$img, 'user_id', $_SESSION['user_id']);
 			}
 		}
 			
@@ -641,6 +995,42 @@
 		case 'declineJob':
 		{
 			$fetchData->declineJob($GLOBALS['_POST']);
+			break;
+		}
+		//for releasing milestone
+		case 'releaseMoney':
+		{
+			$fetchData->releaseMoneyToContractor($GLOBALS['_POST']);
+			break;
+		}
+		//for fund releasing request
+		case 'fundRequest':
+		{
+			$fetchData->sendFundRequestToEmployer($GLOBALS['_POST']);
+			break;
+		}
+		//for money releasing request
+		case 'releaseRequest':
+		{
+			$fetchData->sendReleasingRequestToEmployer($GLOBALS['_POST']);
+			break;
+		}
+		//for update notification status
+		case 'updateNotificationStatus':
+		{
+			$fetchData->updateNotificationStatus($GLOBALS['_POST']);
+			break;
+		}
+		//for uploading profile image
+		case 'profileImageUpload':
+		{
+			$fetchData->uploadProfileImageForUser($GLOBALS['_POST']);
+			break;
+		}
+		//for uploading cover image
+		case 'covfileImageUpload':
+		{
+			$fetchData->uploadCoverImageForUser($GLOBALS['_POST']);
 			break;
 		}
 		default:

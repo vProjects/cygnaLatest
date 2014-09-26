@@ -3,7 +3,7 @@
 	$pageTitle = 'User Project Details';
 	if(!isset($GLOBALS['_COOKIE']['uid']) && !isset($_SESSION['user_id']))
 	{
-		header("Location: log_in.php");
+		header("Location: log-in.php");
 	}
 	include ("v-templates/header.php");
 ?>
@@ -37,6 +37,9 @@
                 <?php
                 	include 'v-modules/right-nav.php';
 				?>
+				<?php
+					include 'v-modules/user-running-projects.php';
+				?>
 			<?php
 				include ("v-modules/polling.php");
 			?>	
@@ -45,7 +48,7 @@
             <!-- body left section ends here -->
             <!-- body right section starts here -->
            <div class="col-md-8 profile_left_part_outline">
-           		<div class="project_list_heading_bar pro_details_outline">
+           		<div class="project_list_heading_bar project_title_outline_userdetails">
                     <span class="pull-left">Project Details</span>
                     
                     <div class="clearfix"></div>

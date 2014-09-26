@@ -39,7 +39,7 @@ $(document).ready(function(e) {
 		Auth: Dipanjan
 	*/
 	$('.skills_checkbox').click(function(e) {
-		var skillName = $(this).val();
+		var skillName = $(this).attr('date-name');
 		//getting the skills textbox value
 		//var skillsValue = $('#skills_value').val();
 		var skillsValue = $('#skills_list_value').html();

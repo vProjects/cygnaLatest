@@ -3,7 +3,7 @@
 	$pageTitle = 'User Full Bid';
 	if(!isset($GLOBALS['_COOKIE']['uid']) && !isset($_SESSION['user_id']))
 	{
-		header("Location: log_in.php");
+		header("Location: log-in.php");
 	}
 	include ("v-templates/header.php");
 ?>
@@ -36,14 +36,9 @@
         	<!-- body left section starts here -->
         	<div class="col-md-3 profile_left_part_outline">
                 <div class="profile_box_outline project_list_leftbar_outline">
-                	<div class="profile_box_heading">Quick Links</div>
-                    <ul class="profile_overview">
-                    	<li><a href="cygna.php?op=job">JobList</a></li>
-                        <li><a href="cygna.php?op=pro">ProjectList</a></li>
-                        <li><a href="message.php">Message</a></li>
-                        <!--<li><a href="post_bid.php">My Proposal</a></li>
-                        <li><a href="#">Billings & Invoice</a></li>-->
-                    </ul>
+                	<?php
+	                	include 'v-modules/right-nav.php';
+					?>
                 </div>
                 <?php
 					include 'v-modules/user-running-projects.php';
@@ -56,7 +51,7 @@
             <!-- body left section ends here -->
             <!-- body right section starts here -->
            <div class="col-md-8 profile_left_part_outline">
-           		<div class="project_list_heading_bar pro_details_outline">
+           		<div class="project_list_heading_bar pro_details_outline project_title_outline_userdetails">
                     <span class="pull-left">Bid Full Details</span>
                     
                     <div class="clearfix"></div>

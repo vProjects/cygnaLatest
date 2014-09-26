@@ -3,7 +3,7 @@
 	$pageTitle = 'MyCygna';
 	if(!isset($GLOBALS['_COOKIE']['uid']) && !isset($_SESSION['user_id']))
 	{
-		header("Location: log_in.php");
+		header("Location: log-in.php");
 	}
 	include ("v-templates/header.php");
 ?>
@@ -43,12 +43,14 @@
            		<?php
 					if(isset($option) && $option == 'job')
 					{
-						echo '<div class="project_list_heading_bar">
+						echo '<div class="project_list_heading_bar project_title_outline_userdetails">
 								<span class="pull-left">Job List</span>
 								<div class="clearfix"></div>
 							</div>';
 						
+						echo '<div class="billing_box_inner billing_box_inner_bottom">';
 						$manageContent->getUserJobList($_SESSION['user_id']);
+						echo '</div>';
 						
 						echo '<div class="project_list_heading_bar bottom_pagination">
 								<div class="clearfix"></div>
@@ -56,11 +58,11 @@
 					}
 					else if(isset($option) && $option == 'pro')
 					{
-						echo '<div class="project_list_heading_bar">
+						echo '<div class="project_list_heading_bar project_title_outline_userdetails">
 								<span class="pull-left">Project List</span>
 								<div class="clearfix"></div>
 							</div>
-							<div class="profile_box_outline">
+							<div class="profile_box_outline project-listpage-top-adjust">
                     			<div class="portfolio_details">';
 						
 						$manageContent->getUserProjectList($_SESSION['user_id']);
@@ -73,13 +75,15 @@
 					}
 					elseif(isset($option) && $option == 'mypro')
 					{
-						echo '<div class="project_list_heading_bar">
+						echo '<div class="project_list_heading_bar project_title_outline_userdetails">
 								<span class="pull-left">My Proposal</span>
 								<div class="clearfix"></div>
 							</div>';
 						
+						echo '<div class="billing_box_inner billing_box_inner_bottom">';
 						//get the proposals on the projects
 						$manageContent->getMyProposals($_SESSION['user_id']);
+						echo '</div>';
 						
 						echo '<div class="project_list_heading_bar bottom_pagination">
 								<div class="clearfix"></div>

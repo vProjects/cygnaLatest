@@ -95,22 +95,25 @@ $(document).ready(function(e) {
 	//getting project sub category
 	$('#pro_category').change(function(e) {
         var cat = $(this).val();
-		sendingData = 'category='+cat+'&refData=gettingSubCategory';
-		
-		//calling ajax function
-		$.ajax({
-			type: "POST",
-			url:"v-includes/class.fetchData.php",
-			data: sendingData,
-			beforeSend:function(){
-				// this is where we append a loading image
-				$('').html('');
-			  },
-			success:function(result){
-				$('#pro_sub_category').fadeIn(500);
-				$('#pro_sub_category').html(result);
-				return false;
-		}});
+        if(cat != -1)
+        {
+        	sendingData = 'category='+cat+'&refData=gettingSubCategory';
+			
+			//calling ajax function
+			$.ajax({
+				type: "POST",
+				url:"v-includes/class.fetchData.php",
+				data: sendingData,
+				beforeSend:function(){
+					// this is where we append a loading image
+					$('').html('');
+				  },
+				success:function(result){
+					$('#pro_sub_category').fadeIn(500);
+					$('#pro_sub_category').html(result);
+					return false;
+			}});
+        }
     });
 	
 	//setting work type for post project
@@ -283,6 +286,181 @@ $(document).ready(function(e) {
 		//sending the page to faq page
 		window.location.href = 'faq.php?search_value='+faq_value;
     });
-	
-	
+    
+    //release the money of milestone
+    $('.release_money').click(function() {
+    	var milestone = $(this).attr('name');
+    	sendingData = 'milestone='+milestone+'&refData=releaseMoney';
+		//calling ajax function
+		$.ajax({
+			type: "POST",
+			url:"v-includes/class.fetchData.php",
+			data: sendingData,
+			beforeSend:function(){
+				// this is where we append a loading image
+				$('').html('');
+			  },
+			success:function(result){
+				alert(result);
+				location.reload();
+				return false;
+		}});
+    });
+    
+    //fund request from contractor
+    $('.fund_request').click(function() {
+    	var milestone = $(this).attr('name');
+    	sendingData = 'milestone='+milestone+'&refData=fundRequest';
+		//calling ajax function
+		$.ajax({
+			type: "POST",
+			url:"v-includes/class.fetchData.php",
+			data: sendingData,
+			beforeSend:function(){
+				// this is where we append a loading image
+				$('').html('');
+			  },
+			success:function(result){
+				alert(result);
+				location.reload();
+				return false;
+		}});
+    });
+    
+    //release request from contractor
+    $('.release_request').click(function() {
+    	var milestone = $(this).attr('name');
+    	sendingData = 'milestone='+milestone+'&refData=releaseRequest';
+		//calling ajax function
+		$.ajax({
+			type: "POST",
+			url:"v-includes/class.fetchData.php",
+			data: sendingData,
+			beforeSend:function(){
+				// this is where we append a loading image
+				$('').html('');
+			  },
+			success:function(result){
+				alert(result);
+				location.reload();
+				return false;
+		}});
+    });
+    
+    //update notification status
+    $('.noti_link').click(function(e) {
+    	var noti_id = $(this).attr('name');
+    	var data_href = $(this).attr('data-credlink');
+    	sendingData = 'noti_id='+noti_id+'&refData=updateNotificationStatus';
+		//calling ajax function
+		$.ajax({
+			type: "POST",
+			url:"v-includes/class.fetchData.php",
+			data: sendingData,
+			beforeSend:function(){
+				// this is where we append a loading image
+				$('').html('');
+			  },
+			success:function(result){
+				console.log(result);
+				window.location.href = data_href;
+				return false;
+		}});
+    });
+    
+    //getting new message
+    if($('#msg_notification').length > 0)
+    {
+    	setInterval(function() {messageNotification();}, 3000);
+    }
+    
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function sendmsg(txt_id,bid_id)
+	{
+		var msg = document.getElementById(txt_id).value;
+		if( msg != "" )
+		{
+			$.ajax({
+			  url: "v-includes/class.fetchData.php",
+			  type: "POST",
+			  data: "msg="+msg+"&bid="+bid_id+"&refData=postMsg"
+			}).success(function(data) {
+			  alert(data);
+			  document.getElementById(txt_id).value = "";
+			});
+		}
+		else
+		{
+			alert('Please type a message.');
+		}
+			
+	}
+	
+function acceptit(bid)
+	{
+		if( bid != "" )
+		{
+			$.ajax({
+			  url: "v-includes/class.fetchData.php",
+			  type: "POST",
+			  data: "bid="+bid+"&refData=acceptJob"
+			}).success(function(data) {
+				if( data != "" )
+				{
+			  		alert(data);
+			  		window.location = "";		
+				}
+			});
+		}
+	}
+	
+	function declineit(bid)
+	{
+		if( bid != "" )
+		{
+			$.ajax({
+			  url: "v-includes/class.fetchData.php",
+			  type: "POST",
+			  data: "bid="+bid+"&refData=declineJob"
+			}).success(function(data) {
+			  	if( data != "" )
+				{
+			  		alert(data);
+			  		window.location = "";			
+				}
+			});
+		}
+	}
+	
+	//function to check new message
+	function messageNotification()
+	{
+		var notification_div = document.getElementById('msg_notification');
+		var msg_notification_1 = document.getElementById('msg_notification_1');
+		
+		$.ajax({
+		  url: "v-includes/class.fetchData.php",
+		  type: "POST",
+		  data: "refData=getMsgNotification"
+		}).success(function(data) {
+			if( data != 0 )
+			{
+			  notification_div.innerHTML = data;
+			  msg_notification_1.innerHTML = data;
+			}
+		});
+	}

@@ -14,6 +14,15 @@
 	}
 ?>
 <?php
+	$survey_stat = $manageContent->getSurveySet($user_id);
+	
+	if($survey_stat[0] == 0)
+	{
+		$_SESSION['warning'] = 'There is no Survey currently';
+		header("Location: index.php");
+	}
+?>
+<?php
 	//including post header to this page
 	include ("v-templates/post-header.php");
 ?>
@@ -31,21 +40,16 @@
 
 	<!-- sign up box starts here -->
 
-	<div class="row">
-		<div class="col-md-8 col-md-offset-1">
-			<h2 class="post_project_top_heading">SURVEY OUR WEBSITE</h2>
-		</div>
-	</div>
-
 		<div class="row">
 
-			<div class="col-md-8 col-md-offset-1">
-
-				<div class="login-box">
+			<div class="col-md-10 col-md-offset-1">
+				<div class="project_title_outline_userdetails submit-ticket-text survay-heading-box">Thank you for choosing CygnaTech. In an effort to provide you with an excellent outsourcing experience we ask that you tell us how we’re doing.</div>
+				<div class="login-box login-box-coustom">
                 	<?php
-						$survey_stat = $manageContent->getSurveySet($user_id);
-						if($survey_stat[0] == 0 || $user_id == 'guest')
-						{
+						
+						
+							if($survey_stat[0] == 0 || $user_id == 'guest')
+							{
 					?>
                     
                     <form action="v-includes/class.formData.php" method="post" role="form" class="survey_form">
@@ -74,7 +78,7 @@
 						{
 					?>
 					<div class="col-sm-12">
-
+							<p>We are always seeking new ways to better serve our customers. Therefore, we encourage you to leave us any suggestions that you feel will improve our services.</p>
                             <div class="col-sm-offset-1 col-sm-9">		
 
                                     <textarea class="form-control survey_feedback_resize" id="survey_report" rows="2" placeholder=" Your feedback"></textarea>

@@ -29,7 +29,7 @@
 			$this->manageContent = new ManageContent_DAL();
 			$this->manageUtility = new utility();
 			$this->manageFileUploader = new FileUpload();
-			$this->mailSent = new Mail();
+			$this->mailSent = new mailFunction();
 		}
 		
 		/*
@@ -64,6 +64,15 @@
 			$column_name2 = array("user_id","date_from","time_from","action","notes");
 			$column_value2 = array($user_id,$curDate,$curTime,$action_value,$notes);
 			$insertValue2 = $this->manageContent->insertValue('user_activation_info',$column_name2,$column_value2);
+			//inserting values to user bid details table by riju
+			$date = strtotime(date("Y-m-d", strtotime($curDate)) . " +30 days");
+			//for converting timrstamp to date
+			$end_date = date("Y-m-d",$date);
+			$column_name3 = array('user_id','total_bids','bids_remaining','starting_date','ending_date','status');
+			$column_value3 = array($user_id, 50 , 50 , $curDate, $end_date, 1);
+			$insertValue3 = $this->manageContent->insertValue('user_bid_details', $column_name3, $column_value3);
+			//sending mail to user
+			$this->mailSent->confirmationRegistration($userData['email_id'], $userData['username']);
 			return array($insertValue,$user_id);
 		}
 		
@@ -362,8 +371,12 @@
 					//uploading the image
 					if(!empty($userFile['file'.$i]['name']) && !empty($userFile['file'.$i]['size']))
 					{
-						//image desired name
-						$port_desired_name = $user_id.'port'.$i;
+						//count the number of portfolios the user is having already in the database	
+						$count = $this->manageContent->getRowValueMultipleCondition('user_portfolio', array('user_id'), array($user_id));
+						//increment $count value by 1
+						$count++;	
+						//image desired name, will always have unique names cause of $count value which is 1 more than the total user portfolios already inside the database
+						$port_desired_name = $user_id.'port'.$count;
 						$port_pic = $this->manageFileUploader->upload_file($port_desired_name,$userFile['file'.$i],'../files/portfolio/');
 						$port_pic_file = 'files/portfolio/'.$port_pic;
 					}
@@ -850,52 +863,68 @@
 			$project_values = $this->manageContent->getValue_where("project_info","*","project_id",$userData['pid']);
 			if(empty($project_values[0]['award_bid_id']) && time() <= strtotime($project_values[0]['ending_date'].' 23:59:59'))
 			{
-				//getting user info
-				$userInfo = $this->manageContent->getValue_where("user_info","*","user_id",$user_id);
-				if(!empty($userInfo[0]))
+				//checking that is bids is remaining
+				$bids_left = $this->manageContent->getLastValue_where('user_bid_details', '*', 'user_id', $user_id, 'id');
+				if($bids_left[0]['bids_remaining'] > 0)
 				{
-					//create bid id
-					$bid_id = uniqid('bid');
-					//uploading bid attachement file
-					if(!empty($userFile['file']['name']) && !empty($userFile['file']['size']))
+					//getting user info
+					$userInfo = $this->manageContent->getValue_where("user_info","*","user_id",$user_id);
+					if(!empty($userInfo[0]))
 					{
-						$original_file = $userFile['file']['name'];
-						//get unix timestamp
-						$unixTimeStamp = time();
-						//image desired name
-						$bid_file_name = md5($bid_id.$unixTimeStamp);
-						$bid_pic = $this->manageFileUploader->upload_document_file($bid_file_name,$userFile['file'],'../files/project/');
-						$bid_file = 'files/project/'.$bid_pic;	
+						//create bid id
+						$bid_id = uniqid('bid');
+						//uploading bid attachement file
+						if(!empty($userFile['file']['name']) && !empty($userFile['file']['size']))
+						{
+							$original_file = $userFile['file']['name'];
+							//get unix timestamp
+							$unixTimeStamp = time();
+							//image desired name
+							$bid_file_name = md5($bid_id.$unixTimeStamp);
+							$bid_pic = $this->manageFileUploader->upload_document_file($bid_file_name,$userFile['file'],'../files/project/');
+							$bid_file = 'files/project/'.$bid_pic;	
+						}
+						else
+						{
+							$original_file = '';
+							$bid_file = '';
+						}
+						//get bid amount and currency
+						$bid_amount = intval($userData['bid_price']);
+						$currency = '$';
+						//getting date, time, ip of bid post
+						$curDate = $this->getCurrentDate();
+						$curTime = $this->getCurrentTime();
+						$ip = $this->manageUtility->getIpAddress();
+						//setting status = 1
+						$status = 1;
+						//inserting the value to table
+						$column_name = array("bid_id","project_id","user_id","description","original_file","file","currency","amount","time_range","date","time","ip","status");
+						$column_value = array($bid_id,$userData['pid'],$user_id,$userData['bid_pro'],$original_file,$bid_file,$currency,$bid_amount,$userData['time_range'],$curDate,$curTime,$ip,$status);
+						$insert = $this->manageContent->insertValue("bid_info",$column_name,$column_value);
+						//increasing total no of bids in project info table
+						if($insert == 1)
+						{
+							//increment the value by 1
+							$increamentValue = $this->manageContent->increamentValue("project_info","total_bids",1,"project_id",$userData['pid']);
+							//for decrement remaining bids number after a bid
+							$remaining_bids = $bids_left[0]['bids_remaining'] - 1;
+							$update_bids = $this->manageContent->updateValueMultipleCondition('user_bid_details', 'bids_remaining', $remaining_bids, array('user_id', 'status'), array($user_id, 1));
+							//get user details
+							$userDetails = $this->getEmailIdFromUserId($user_id);
+							//mail to the contractor
+							$this->mailSent->mailAfterBidding($userDetails[0],$userDetails[1],$project_values[0]['title']);
+						}
+						return $insert;
 					}
 					else
 					{
-						$original_file = '';
-						$bid_file = '';
+						return 'You Have To Fill Up Your Personal Information, Then Only You Are Eligible To Place A Bid!!';
 					}
-					//get bid amount and currency
-					$bid_amount = intval($userData['bid_price']);
-					$currency = '$';
-					//getting date, time, ip of bid post
-					$curDate = $this->getCurrentDate();
-					$curTime = $this->getCurrentTime();
-					$ip = $this->manageUtility->getIpAddress();
-					//setting status = 1
-					$status = 1;
-					//inserting the value to table
-					$column_name = array("bid_id","project_id","user_id","description","original_file","file","currency","amount","time_range","date","time","ip","status");
-					$column_value = array($bid_id,$userData['pid'],$user_id,$userData['bid_pro'],$original_file,$bid_file,$currency,$bid_amount,$userData['time_range'],$curDate,$curTime,$ip,$status);
-					$insert = $this->manageContent->insertValue("bid_info",$column_name,$column_value);
-					//increasing total no of bids in project info table
-					if($insert == 1)
-					{
-						//increment the value by 1
-						$increamentValue = $this->manageContent->increamentValue("project_info","total_bids",1,"project_id",$userData['pid']);
-					}
-					return $insert;
 				}
 				else
 				{
-					return 'You Have To Fill Up Your Personal Information, Then Only You Are Eligible To Place A Bid!!';
+					return 'You have no bids left';	
 				}
 					
 			}
@@ -983,8 +1012,8 @@
 			//getting request ip
 			$request_ip = $this->manageUtility->getIpAddress();
 			//setting column name
-			$column_name = array('request_id','name','phn_no','email','title','subject','message','request_ip','date','time');
-			$column_value = array($rid,$userData['name'],$userData['phn'],$userData['email'],$userData['title'],$userData['subject'],$userData['msg'],$request_ip,$curdate,$curtime);
+			$column_name = array('request_id','name','phn_no','email','title','subject','message','request_ip','date','time','status');
+			$column_value = array($rid,$userData['name'],$userData['phn'],$userData['email'],$userData['title'],$userData['subject'],$userData['msg'],$request_ip,$curdate,$curtime,0);
 			//inserting values to database
 			$insert = $this->manageContent->insertValue("contact_us",$column_name,$column_value);
 			return $insert;
@@ -1004,8 +1033,8 @@
 			//getting request ip
 			$ticket_ip = $this->manageUtility->getIpAddress();
 			//setting column name
-			$column_name = array('ticket_id','user_id','title','subject','message','ticket_ip','date','time');
-			$column_value = array($tid,$user_id,$userData['title'],$userData['subject'],$userData['msg'],$ticket_ip,$curdate,$curtime);
+			$column_name = array('ticket_id','user_id','title','subject','message','ticket_ip','date','time','status');
+			$column_value = array($tid,$user_id,$userData['title'],$userData['subject'],$userData['msg'],$ticket_ip,$curdate,$curtime,0);
 			//inserting values to database
 			$insert = $this->manageContent->insertValue("submit_ticket",$column_name,$column_value);
 			return $insert;
@@ -1058,9 +1087,206 @@
 			return $insert;
 		}
 		
+		/*
+		- method for withdraw money request
+		- Auth: Dipanjan
+		*/
+		function withdrawMoneyRequest($userData)
+		{
+			//checking for int value of amount
+			if(is_numeric($userData['amount']))
+			{
+				//checking user net amount
+				$userMoney = $this->getUserAmountDetails($_SESSION['user_id']);
+				if($userData['amount'] <= $userMoney[2])
+				{
+					//creating withdraw id
+					$withdraw_id = uniqid('wit');
+					//getting user money balance
+					$user_account = $this->manageContent->getLastValue('user_money_info', '*', 'user_id', $_SESSION['user_id'], 'id');
+					$new_total_money = $user_account[0]['total_amount'] - $userData['amount'];
+					$column_name = array('specification','user_id','date','debit_amount','total_amount','status');
+					$column_value = array($withdraw_id,$_SESSION['user_id'],date('Y-m-d h:m:s a'),$userData['amount'],$new_total_money,'Processing');
+					$insert = $this->manageContent->insertValue('user_money_info', $column_name, $column_value);
+					if($insert != 0)
+					{
+						return array(1,'Your Request Send Successfully');
+					}
+					else
+					{
+						return array(0,'Request Sending Failed');
+					}
+				}
+				else
+				{
+					return array(0,'You Have Not Sufficient Balance');
+				}
+			}
+			else
+			{
+				return array(0,'Please Enter Only Amount');
+			}
+		}
+		
+		/*
+		- method for getting user money details
+		- Auth: Dipanjan
+		*/
+		function getUserAmountDetails($user_id)
+		{
+			//defining variable
+			$total_earning = 0;
+			$total_withdraw = 0;
+			//getting values of user money
+			$userMoney = $this->manageContent->getValueMultipleCondtn('user_money_info', '*', array('user_id'), array($user_id));
+			if(!empty($userMoney[0]))
+			{
+				foreach($userMoney as $money)
+				{
+					if(!empty($money['credit_amount']))
+					{
+						$total_earning = $total_earning + $money['credit_amount'];
+					}
+					
+					if(!empty($money['debit_amount']))
+					{
+						$total_withdraw = $total_withdraw + $money['debit_amount'];
+					}
+				}
+			}
+			
+			$net_amount = $total_earning - $total_withdraw;
+			
+			return array($total_earning,$total_withdraw,$net_amount);
+		}
+		
+		/*
+		- method for uploading file of workroom
+		- Auth: Dipanjan
+		*/
+		function fileUploadForWorkroom($userData,$userFile)
+		{
+			//getting workroom details
+			$workroom_details = $this->manageContent->getValue_where('workroom_info', '*', 'workroom_id', $userData['wid']);
+			if($workroom_details[0]['emp_user_id'] == $_SESSION['user_id'] || $workroom_details[0]['con_user_id'] == $_SESSION['user_id'])
+			{
+				if(!empty($userFile['wk_file']['name']))
+				{
+					//creating file id
+					$file_id = uniqid('file');
+					$file_type = $userFile['wk_file']['type'];
+					$file_original = $userFile['wk_file']['name'];
+					$file_modified_name = $file_id;
+					$date = date('Y-m-d h:i:s a');
+					//upload the file
+					$upload = $this->manageFileUploader->upload_document_file($file_modified_name, $userFile['wk_file'], '../files/wk-files/');
+					$file_uploaded = 'files/wk-files/'.$upload;
+					//insert the values to database
+					$column_name = array('file_id','file_type','file_or','file_name','date','workroom_id','user_id');
+					$column_value = array($file_id,$file_type,$file_original,$file_uploaded,$date,$userData['wid'],$_SESSION['user_id']);
+					$insert = $this->manageContent->insertValue('files_info', $column_name, $column_value);
+					if($insert == 1)
+					{
+						$_SESSION['success'] = 'File Uploaded Successfully';
+					}
+					else
+					{
+						$_SESSION['warning'] = 'File Uploading Unsuccessfull';
+					}
+				}
+				else
+				{
+					$_SESSION['warning'] = 'Select A File';
+				}
+			}
+			else
+			{
+				$_SESSION['warning'] = 'File Uploading Unsuccessfull';
+			}	
+		}
+
+		
+		/*
+		- method for getting email from user id
+		- Auth: Dipanjan
+		*/
+		function getEmailIdFromUserId($user_id)
+		{
+			$user = $this->manageContent->getValue_where('user_credentials', '*', 'user_id', $user_id);
+			return array($user[0]['email_id'],$user[0]['username']);
+		}
+		
+		/*
+		- method for sending password to user
+		- Auth: Dipanjan
+		*/
+		function userForgotPassword($userData)
+		{
+			if(isset($userData['email']) && !empty($userData['email']))
+			{
+				//get values from email id
+				$user = $this->manageContent->getValue_where('user_credentials','*','email_id',$userData['email']);
+				if(!empty($user[0]))
+				{
+					//set password
+					$password = uniqid();
+					//update the password
+					$update_pass = $this->manageContent->updateValueWhere('user_credentials','password',md5($password),'email_id',$userData['email']);
+					//mail to user
+					$mailsent = $this->mailSent->forgotPasswordMail($user[0]['email_id'], $user[0]['username'], $password);
+					if($mailsent == 1)
+					{
+						$_SESSION['success'] = 'Password is sent to your mail';
+					}
+					else
+					{
+						$_SESSION['warning'] = 'Mail sending unsuccessfull';
+					}
+				}
+				else
+				{
+					$_SESSION['warning'] = 'Invalid EmailId';
+				}
+			}
+		}
+
+		/*
+		- method for sending mail for advertise with us
+		- Auth: Riju
+		*/
+		function advertiseWithUs($userData)
+		{
+			$body = '<p><b>Name:</b> '.$userData['f_name'].'</p>
+					<p><b>Company:</b> '.$userData['company'].'</p>
+					<p><b>Contact Number:</b> '.$userData['contact'].'</p>
+					<p><b>Email Id:</b> '.$userData['email'].'</p>
+					<p><b>Budget:</b> '.$userData['budget'].'</p>
+					<p><b>Message:</b> '.$userData['message'].'</p>';
+			
+			$mailsent = $this->mailSent->advertiseWithUsMail($body);
+			return $mailsent;
+		}
+
+		/*
+		- method for changing password
+		- Auth: Riju
+		*/
+		function changePassword($userData)
+		{
+			$old_password = $this->manageContent->getValue_where('user_credentials', '*', 'user_id', $_SESSION['user_id']);
+			
+			if($old_password[0]['password'] == md5($userData['old_pass']))
+			{
+				if(!empty($userData['new_pass']) && $userData['new_pass'] == $userData['re_pass'])
+				{
+					$change_password = $this->manageContent->updateValueWhere('user_credentials', 'password', md5($userData['new_pass']), 'user_id', $_SESSION['user_id']);
+				
+				}
+			}
+			return $change_password;
+		}
+	
 	}
-	
-	
 	
 	
 	/* getting data from UI layer form */
@@ -1087,13 +1313,13 @@
 				else
 				{
 					$_SESSION['warning'] = 'Registration Unsuccessfull!!';
-					header("Location: ../sign_up.php");
+					header("Location: ../sign-up.php");
 				}
 			}
 			else
 			{
 				$_SESSION['warning'] = 'Password Fields Are Not Matching!!';
-				header("Location: ../sign_up.php");
+				header("Location: ../sign-up.php");
 			}
 			break;
 		}
@@ -1108,7 +1334,7 @@
 				if($loginCreden[0] == 0)
 				{
 					$_SESSION['warning'] = $loginCreden[1];
-					header("Location: ../log_in.php");
+					header("Location: ../log-in.php");
 				}
 				else if($loginCreden[0] == 1)
 				{
@@ -1128,7 +1354,7 @@
 			else
 			{
 				$_SESSION['warning'] = 'Username or Password Field Is Empty!!';
-				header("Location: ../log_in.php");
+				header("Location: ../log-in.php");
 			}
 			break;
 		}
@@ -1141,12 +1367,12 @@
 			if($insertPersInfo == 1)
 			{
 				$_SESSION['success'] = 'Your Personal Info Inserted Successfully!!';
-				header("Location: ../edit_profile.php?op=img");
+				header("Location: ../edit-profile.php?op=img");
 			}
 			else
 			{
 				$_SESSION['warning'] = 'Your Personal Info Insertion Unsuccessfull!!';
-				header("Location: ../edit_profile.php?op=per");
+				header("Location: ../edit-profile.php?op=per");
 			}
 			break;
 		}
@@ -1170,7 +1396,7 @@
 			{
 				$_SESSION['warning'] = $insertUserImage[1];
 			}
-			header("Location: ../edit_profile.php");
+			header("Location: ../edit-profile.php");
 			break;
 		}
 		//for inserting profile info
@@ -1290,7 +1516,7 @@
 			{
 				$_SESSION['warning'] = 'Project Posting unsuccessfull!!';
 			}
-			header("Location: ../post_project.php");
+			header("Location: ../post-project.php");
 			break;
 		}
 		//for editing values of project
@@ -1323,15 +1549,15 @@
 			{
 				$_SESSION['success'] = 'Your Proposal Submitted Successfully!!';
 			}
-			else if($insertBid == 0)
+			else if(!is_numeric($insertBid))
 			{
 				$_SESSION['warning'] = 'Your Proposal Submission Unsuccessfully!!';
 			}
-			else
+			else if($insertBid == 0)
 			{
 				$_SESSION['warning'] = $insertBid;
 			}
-			header("Location: ../project_list.php");
+			header("Location: ../project-list.php");
 			break;
 		}
 		//for inserting bid for a project
@@ -1365,7 +1591,7 @@
 			{
 				$_SESSION['warning'] = 'Your message sending failed!!';
 			}
-			header("Location: ../contact_us.php");
+			header("Location: ../contact-us.php");
 			break;
 		}
 		//for user submit ticket
@@ -1388,6 +1614,68 @@
 		{
 			$create = $formData->createMilestone($GLOBALS['_POST']);
 			header("Location: ../escrow.php?wid=".$GLOBALS['_POST']['wid']);
+			break;
+		}
+		//for withdraw user money
+		case md5('withdraw_amount'):
+		{
+			$userWithdraw = $formData->withdrawMoneyRequest($GLOBALS['_POST']);
+			if($userWithdraw[0] == 1)
+			{
+				$_SESSION['success'] = $userWithdraw[1];
+			}
+			else
+			{
+				$_SESSION['warning'] = $userWithdraw[1];
+			}
+			header("Location: ../user-account.php");
+			break;
+		}
+		//for creating milestone
+		case md5('file_upload'):
+		{
+			$file_upload = $formData->fileUploadForWorkroom($GLOBALS['_POST'],$GLOBALS['_FILES']);
+			header("Location: ../fileList.php?wid=".$GLOBALS['_POST']['wid']);
+			break;
+		}
+		//for forgot password of user
+		case md5('forgot-password'):
+		{
+			$forgot_password = $formData->userForgotPassword($GLOBALS['_POST']);
+			header("Location: ../forget-password.php");
+			break;
+		}
+		//for advertise with us by Riju
+		case md5('advertise_us'):
+		{
+			$advertise = $formData->advertiseWithUs($GLOBALS['_POST']);
+			if($advertise == 1)
+			{
+				$_SESSION['success'] = 'Your message is sent successfully';
+			}
+			else 
+			{
+				$_SESSION['warning'] = 'Sending message unsuccessfull';
+			}
+			header("Location: ../advertise-with-us.php");	
+			break;
+		}
+		//for changing password Auth:Riju
+		case md5('change_password'):
+		{
+			
+			$change = $formData->changePassword($GLOBALS['_POST']);
+			if($change == 1)
+			{
+				$_SESSION['success'] = 'Your password is changed successfully';
+			}
+			else
+			{
+				$_SESSION['warning'] = 'Changing Password Unsuccessful';
+			}
+			
+			header("Location: ../profile.php");
+			break;
 		}
 		default:
 		{

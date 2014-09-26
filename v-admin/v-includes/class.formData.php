@@ -29,7 +29,7 @@
 			$this->manageContent = new ManageContent_DAL();
 			$this->manageUtility = new utility();
 			$this->manageFileUploader = new FileUpload();
-			$this->mailSent = new Mail();
+			$this->mailSent = new mailFunction();
 		}
 		
 		/*
@@ -526,7 +526,7 @@
 			{
 				$upd3 = $this->manageContent->updateValueWhere('mypage','status',$userData['status'],'page_id',$userData['id']);
 			}
-			if($upd1 != 0 || $upd2 != 0 || $upd3 != 3)
+			if($upd1 != 0 || $upd2 != 0 || $upd3 != 0)
 			{
 				return 1;
 			}
@@ -638,6 +638,211 @@
 		{
 			$time = date('h:i:s a');
 			return $time;
+		}
+		
+		/*
+		- method for inserting about us details
+		- Auth: Thakur
+		*/
+		function addAboutUsContent($userdata)
+		{
+			if(!empty($_FILES['image_link']['name']))
+			{
+				$img_uploaded = $this->manageContent->getValue_descending('about_us', '*');
+				$last_img_uploaded = $img_uploaded['0']['id'];
+				$img_upload = $this->manageFileUploader->upload_file('aboutus'.($last_img_uploaded + 1), $_FILES['image_link'], '../../img/');
+				$img_db = 'img/'.$img_upload;
+			}
+			else
+			{
+				$img_db = '';
+			}
+				
+			//set column name
+			$column_name = array('title','description','image_link','status');
+			$column_value = array($userdata['title'],$userdata['description'],$img_db,1);
+			//insert the values
+			$insert = $this->manageContent->insertValue('about_us',$column_name,$column_value);
+			return $insert;
+		}
+		
+		/*
+		- method for edit my about us
+		- Auth: Thakur
+		*/
+		function editAboutUs($userData,$userFile)
+		{
+			if(isset($userData['title']) && !empty($userData['title']))
+			{
+				$upd1 = $this->manageContent->updateValueWhere('about_us','title',$userData['title'],'id',$userData['id']);
+			}
+			if(isset($userData['description']) && !empty($userData['description']))
+			{
+				$upd2 = $this->manageContent->updateValueWhere('about_us','description',$userData['description'],'id',$userData['id']);
+			}
+			if(isset($userData['image_link']) && !empty($_FILES['image_link']['name']))
+			{
+				$img_uploaded = $this->manageContent->getValue_descending('about_us', '*');
+				$img_upload = $this->manageFileUploader->upload_file('aboutus'.$img_uploaded[0]['id'], $userFile['image_link'], '../../img/');
+				
+				$upd3 = $this->manageContent->updateValueWhere('about_us','image_link','img/'.$img_upload,'id',$userData['id']);
+			}
+			if($upd1 != 0 || $upd2 != 0 || $upd3 != 3)
+			{
+				return 1;
+			}
+		}
+		
+		/*
+		- method for release with amount
+		- Auth: Dipanjan
+		*/
+		function releaseWithdrawMoney($userData)
+		{
+			//update withdraw request
+			$update = $this->manageContent->updateValueWhere('user_money_info', 'status', 'Completed', 'id', $userData['id']);
+			return $update;
+		}
+
+		/*
+		- method for change the open tickets to close for user
+		- Auth: Riju
+		*/
+		function changeUserTicketStatus($userData)
+		{
+			$update=$this->manageContent->updateValueWhere('submit_ticket','status', 1, 'ticket_id', $userData['ticket'] );
+			return $update;
+		}
+
+		/*
+		- method for change the open tickets to close for guest
+		- Auth: Riju
+		*/
+		function changeGuestTicketStatus($userData)
+		{
+			$update=$this->manageContent->updateValueWhere('contact_us','status', 1, 'request_id', $userData['request'] );
+			return $update;
+		}
+
+		/*
+		- method for update skill
+		- Auth: Dipanjan
+		*/
+		function updateSkills($userData)
+		{
+			if(!empty($userData['skill_name']))
+			{
+				$update = $this->manageContent->updateValueWhere('skills','name', $userData['skill_name'], 'skillId', $userData['id'] );
+			}
+				
+		}
+		
+		/*
+		- method for update category
+		- Auth: Dipanjan
+		*/
+		function updateCatgegory($userData)
+		{
+			if(!empty($userData['name']))
+			{
+				$update = $this->manageContent->updateValueWhere('category','name', $userData['name'], 'categoryId', $userData['id'] );
+			}
+			if(isset($userData['category_skills']) && !empty($userData['category_skills']))
+			{
+				$cat_skill = $this->_convertArrayToString($userData['category_skills']);
+				$update_skiil = $this->manageContent->updateValueWhere('category','skills', $cat_skill, 'categoryId', $userData['id'] );
+			}	
+		}
+		
+		/*
+		- method for update sub category
+		- Auth: Dipanjan
+		*/
+		function updateSubCatgegory($userData)
+		{
+			if(!empty($userData['name']))
+			{
+				$update = $this->manageContent->updateValueWhere('subcategory','name', $userData['name'], 'subCategoryId', $userData['id'] );
+			}
+			if(!empty($userData['category']))
+			{
+				$update = $this->manageContent->updateValueWhere('subcategory','categoryId', $userData['category'], 'subCategoryId', $userData['id'] );
+			}
+			if(isset($userData['category_skills']) && !empty($userData['category_skills']))
+			{
+				$cat_skill = $this->_convertArrayToString($userData['category_skills']);
+				$update_skiil = $this->manageContent->updateValueWhere('subcategory','skills', $cat_skill, 'subCategoryId', $userData['id'] );
+			}	
+		}
+		
+		/*
+		- method for inserting advertisement details
+		- Auth: Debojyoti
+		*/
+		function addAdvertisement($userData,$userFile)
+		{
+			$curdate = $this->getCurrentDate();
+			$curtime = $this->getCurrentTime();
+			$curdatetime=$curdate." ".$curtime;
+			$id=uniqid('adv');
+			//set column name
+			$column_name = array('owner-name','add-type','uniqueId','value','expdate','datetime','status');
+			
+			if(!empty($userFile['value']['tmp_name'])){
+				$extension=end(explode('.', $userFile['value']['name']));
+				$destination='../../files/adv_images/';
+				$img_upload = $this->manageFileUploader->upload_file($id.'-image', $userFile['value'], $destination);
+				$data="files/adv_images/".$id.'-image.'.$extension;
+				}
+			else {
+				$data=$userData['value'];
+			}
+			$column_value = array($userData['name'],$userData['ad_type'],$id,$data,$userData['exp_date'],$curdatetime,$userData['status']);
+			//insert the values
+			$insert = $this->manageContent->insertValue('advertisement',$column_name,$column_value);
+			return $insert;
+		}
+		
+		/*
+		- method for edit advertisement
+		- Auth: Debojyoti
+		*/
+		function updAdvertisement($userData,$userFile)
+		{
+			$curdate = $this->getCurrentDate();
+			$curtime = $this->getCurrentTime();
+			$curdatetime=$curdate." ".$curtime;
+			if(!empty($userFile['uvalue']['name']))
+			{
+				
+					$extension=end(explode('.', $userFile['uvalue']['name']));
+					$destination='../../files/adv_images/';
+					$img_upload = $this->manageFileUploader->upload_file($userData['id'].'-image', $userFile['uvalue'], $destination);
+					$data="files/adv_images/".$userData['id'].'-image.'.$extension;
+			}
+				else{
+					$data=$userData['uvalue'];
+				}
+				$upd1 = $this->manageContent->updateValueWhere('advertisement','value',$data,'uniqueId',$userData['id']);
+			
+				
+			if(isset($userData['uname']) && !empty($userData['uname']))
+			{
+				$upd2 = $this->manageContent->updateValueWhere('advertisement','owner-name',$userData['uname'],'uniqueId',$userData['id']);
+			}
+			if(isset($userData['uad_type']) && !empty($userData['uad_type']))
+			{
+				$upd3 = $this->manageContent->updateValueWhere('advertisement','add-type',$userData['uad_type'],'uniqueId',$userData['id']);
+			}
+			if(isset($userData['uexp_date']) && !empty($userData['uexp_date']))
+			{
+				$upd4 = $this->manageContent->updateValueWhere('advertisement','expdate',$userData['uexp_date'],'uniqueId',$userData['id']);
+			}
+			$upd5= $this->manageContent->updateValueWhere('advertisement','status',$userData['ustatus'],'uniqueId',$userData['id']);
+			if($upd1 != 0 || $upd2 != 0 || $upd3 != 0 || $upd4 != 0 || $upd5 != 0)
+			{
+				return 1;
+			}
 		}
 		
 	}
@@ -898,6 +1103,102 @@
 				$_SESSION['warning'] = 'Update Unsuccessfull';
 			}
 			header("Location: ../addSubCategory.php");
+			break;
+		}
+		//for taking action of adding about us
+		case md5('add_aboutuscontent'):
+		{
+			$aboutUsCont = $formData->addAboutUsContent($GLOBALS['_POST']);
+			if($aboutUsCont == 1)
+			{
+				$_SESSION['success'] = 'Insert Successfull';
+			}
+			else
+			{
+				$_SESSION['warning'] = 'Insert Unsuccessfull';
+			}
+			
+			header("Location: ../addAboutUsContent.php");
+			break;
+		}
+		//for taking action of editting about us
+		case md5('edit_aboutuscontent'):
+		{
+			$aboutUsEdit = $formData->editAboutUs($GLOBALS['_POST'],$GLOBALS['_FILES']);
+			if($aboutUsEdit == 1)
+			{
+				$_SESSION['success'] = 'Update Successfull';
+			}
+			else
+			{
+				$_SESSION['warning'] = 'Update Unsuccessfull';
+			}
+			header("Location: ../editAbout.php?id=".$_POST['id']);
+			break;
+		}
+		//for releaisng withdraw request
+		case md5('action_withdraw'):
+		{
+			$releaseWithdraw = $formData->releaseWithdrawMoney($GLOBALS['_POST']);
+			header("Location: ../withdrawList.php?list=Processing");
+			break;
+		}
+		//for change user ticket status by riju
+		case md5('user_ticket'):
+		{
+			$change = $formData->changeUserTicketStatus($GLOBALS['_POST']);
+		    header("Location: ../manageUserTicket.php?status=0");
+			break;
+		}
+
+		//for change guest ticket status auth: riju
+		case md5('guest_ticket'):
+		{
+			$change = $formData->changeGuestTicketStatus($GLOBALS['_POST']);
+		    header("Location: ../manageGuestTicket.php?status=0");
+			break;
+		}
+		//for update skill
+		case md5('edit_skill'):
+		{
+			$updSkill = $formData->updateSkills($GLOBALS['_POST']);
+		    header("Location: ../addSkills.php?id=".$GLOBALS['_POST']['id']);
+			break;
+		}
+		//for update category
+		case md5('edit_category'):
+		{
+			$updCat = $formData->updateCatgegory($GLOBALS['_POST']);
+		    header("Location: ../addCategory.php?id=".$GLOBALS['_POST']['id']);
+			break;
+		}
+		//for update sub category
+		case md5('edit_subcategory'):
+		{
+			$updSubCat = $formData->updateSubCatgegory($GLOBALS['_POST']);
+		    header("Location: ../addSubCategory.php?id=".$GLOBALS['_POST']['id']);
+			break;
+		}
+		//for adding advertisement details: Debojyoti
+		case md5('add_advertisement'):
+		{
+			$insertAd = $formData->addAdvertisement($GLOBALS['_POST'],$GLOBALS['_FILES']);
+		    header("Location: ../addAdvertisement.php");
+			break;
+		}
+		//for updating advertisement details: Debojyoti
+		case md5('upd_advertisement'):
+		{
+			$updateAd = $formData->updAdvertisement($GLOBALS['_POST'],$GLOBALS['_FILES']);
+			if($updateAd == 1)
+			{
+				$_SESSION['success'] = 'Update Successfull';
+			}
+			else
+			{
+				$_SESSION['warning'] = 'Update Unsuccessfull';
+			}
+		    header("Location: ../editAdv.php?id=".$_POST['id']);
 			break;
 		}
 		default:

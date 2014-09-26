@@ -188,6 +188,48 @@
 		}
 		
 		/*
+		- method for updating multiple values using multiple conditions
+		- auth: Dipanjan
+		*/
+		function updateMultipleValueMulCondition($table_name,$column_name,$column_values,$condition_column,$condition_value)
+		{
+			//declaring variables for preparing the query
+			$column = "";
+			$value = "";
+			
+			for($i=0;$i<count($column_name);$i++)
+			{
+				if(is_string($column_values[$i]))
+				{
+					$column = $column.",`".$column_name[$i]."`='".$column_values[$i]."'";
+				}
+				else
+				{
+					$column = $column.",`".$column_name[$i]."`=".$column_values[$i];
+				}
+				//$column = $column.",`".$column_name[$i]."` = ".$column_values[$i];
+				
+			}
+			$column = substr($column,1);
+			
+			//declaring variables for preparing the query
+			$update_column = "";
+			$update_value = "";
+			
+			for($i=0;$i<count($condition_column);$i++)
+			{
+				$update_column = $update_column." AND ".$condition_column[$i]."='".$condition_value[$i]."'";
+				
+			}
+			$update_column = substr($update_column,5);
+			
+			$query = $this->link->prepare("UPDATE `".$table_name."` SET ". $column ." WHERE ".$update_column);
+			$query->execute();
+			$count = $query->rowCount();
+			return $count;
+		}
+		
+		/*
 		- method for updating the values using where clause with multiple conditions
 		- auth: Dipanjan
 		*/
@@ -313,36 +355,6 @@
 			$count = $query->rowCount();
 			return $count;
 		}
-		
-		/*
-		- function to get the likely values of keyword with multiple condition
-		- auth: Dipanjan
-		*/
-		/*function getValue_likely_multiple($table_name,$value,$column_name,$column_value)
-		{
-			//declaring variables for preparing the query
-			$column = "";
-			$value = "";
-			
-			for($i=0;$i<count($column_name);$i++)
-			{
-				$column = $column." OR ".$column_name[$i]." LIKE '%".$column_value[$i]."%'";
-			}
-			$column = substr($column,4);
-			echo $column;
-			
-			$query = $this->link->prepare("SELECT $value from $table_name WHERE ".$column."");
-			$query->execute();
-			$rowcount = $query->rowCount();
-			echo $rowcount;
-			if($rowcount > 0){
-				$result = $query->fetchAll(PDO::FETCH_ASSOC);
-				//return $result;
-			}
-			else{
-				//return $rowcount;
-			}
-		}*/
 		
 		/*
 		- function to get the likely values of keyword with descending
@@ -530,6 +542,20 @@
 		function getMessageList($table_name,$value,$user_id,$sort_by,$startPoint,$limit)
 		{
 			$query = $this->link->prepare("SELECT $value from `$table_name` where (`con_user_id`='$user_id' OR `emp_user_id`='$user_id') ORDER BY `$sort_by` DESC LIMIT $startPoint,$limit");
+			$query->execute();
+			$rowcount = $query->rowCount();
+			if($rowcount > 0){
+				$result = $query->fetchAll(PDO::FETCH_ASSOC);
+				return $result;
+			}
+			else{
+				return $rowcount;
+			}
+		}
+		
+		//getting last value of a column
+		function getLastValue_where($table_name,$value,$column_name,$column_value,$sorting_column){
+			$query = $this->link->query("SELECT $value FROM $table_name WHERE $column_name = '$column_value' ORDER BY $sorting_column DESC LIMIT 1");
 			$query->execute();
 			$rowcount = $query->rowCount();
 			if($rowcount > 0){

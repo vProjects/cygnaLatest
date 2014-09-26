@@ -1,0 +1,2 @@
+[26-May-2014 12:41:35 America/Denver] PHP Fatal error:  Call to a member function prepare() on a non-object in /home/cygnatec/public_html/v-includes/class.DAL.php on line 77
+[26-May-2014 12:57:06 America/Denver] PHP Fatal error:  Call to a member function prepare() on a non-object in /home/cygnatec/public_html/v-includes/class.DAL.php on line 77

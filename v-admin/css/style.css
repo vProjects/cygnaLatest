@@ -390,3 +390,14 @@ table.dataTable thead .sorting:after {
 .skills {
 	margin: 5px;
 }
+
+.btn-section{
+	margin-bottom: 10px;
+}
+.btn-section a{
+	color: #FFFFFF;
+}
+.btn-section a:hover{
+	text-decoration: none;
+}
+
